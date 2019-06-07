@@ -6,7 +6,7 @@ from enum import Enum, auto, unique
 import ai.q_utils as q_utils
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 ch = logging.StreamHandler()
 formatter = logging.Formatter('%(module)s: %(levelname)s: %(message)s')
@@ -77,6 +77,7 @@ class RequestManager:
         else:
             msg = 'Tried to terminate a dataset ai request before it had been initilized.  DatasetId: "' + str(datasetId) + '"'
             logger.info(msg)
+            self.ai.labApi.set_ai_status(datasetId, 'finished')
         
 
     def process_requests(self):

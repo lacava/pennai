@@ -40,7 +40,8 @@ class SVDRecommender(BaseRecommender):
     metric: str (default: accuracy for classifiers, mse for regressors)
         The metric by which to assess performance on the datasets.
     """
-    def __init__(self, ml_type='classifier', metric=None, ml_p=None): 
+    def __init__(self, ml_type='classifier', metric=None, ml_p=None, 
+            max_epochs=100): 
         """Initialize recommendation system."""
         super().__init__(ml_type, metric, ml_p)
         
@@ -49,14 +50,14 @@ class SVDRecommender(BaseRecommender):
         # reader for translating btw PennAI results and Suprise training set
         self.reader = Reader()
         # algo is the online Surprise-based rec system
-        self.algo = mySVD(n_factors=20, n_epochs=20, biased=True, init_mean=0,
+        self.algo = mySVD(n_factors=20, biased=True, init_mean=0,
                           init_std_dev=.2, lr_all=.01,
                           reg_all=.02, lr_bu=None, lr_bi=None, lr_pu=None, 
                           lr_qi=None, reg_bu=None, reg_bi=None, reg_pu=None, 
                           reg_qi=None, random_state=None, verbose=False)
         
+        self.max_epochs = max_epochs
         self.first_fit = True
-        self.max_epochs = 100
 
     def update(self, results_data, results_mf=None, source='pennai'):
         """Update ML / Parameter recommendations based on overall performance in 
@@ -84,10 +85,10 @@ class SVDRecommender(BaseRecommender):
                 results_data['parameter_hash'].values)
         results_data.rename(columns={self.metric:'score'},inplace=True)
         self.results_df = self.results_df.append(
-                results_data[['algorithm-parameters','dataset','score']]
+                results_data[['algorithm-parameters','dataset_hash','score']]
                                                 ).drop_duplicates()
 
-        data = Dataset.load_from_df(self.results_df[['dataset', 
+        data = Dataset.load_from_df(self.results_df[['dataset_hash', 
                                                      'algorithm-parameters', 
                                                      'score']], 
                                     self.reader, rating_scale=(0,1))
@@ -99,7 +100,7 @@ class SVDRecommender(BaseRecommender):
 
     def update_model(self,results_data):
         """Stores new results and updates SVD."""
-        logger.debug('updating SVD model')
+        logger.info('updating SVD model')
         # shuffle the results data the first time
         if self.first_fit:
             results_data = results_data.sample(frac=1)
@@ -127,16 +128,20 @@ class SVDRecommender(BaseRecommender):
             Return a list of length n_recs in order of estimators and parameters expected to do 
             best.
         """
+        # dataset hash table
+        super().recommend(dataset_id, n_recs, dataset_mf)
+
         # TODO: raise error if dataset_mf is None 
         # print('dataset bias:',
         #         self.algo.bu[self.algo.trainset.to_inner_uid(dataset_id)])
+        dataset_hash = self.dataset_id_to_hash[dataset_id]
         try:
             predictions = []
             filtered =0
             for alg_params in self.mlp_combos:
-                if (dataset_id+'|'+alg_params not in 
+                if (dataset_hash+'|'+alg_params not in 
                     self.trained_dataset_models):  
-                    predictions.append(self.algo.predict(dataset_id, alg_params,
+                    predictions.append(self.algo.predict(dataset_hash, alg_params,
                                                          clip=False))
                 else:
                     filtered +=1

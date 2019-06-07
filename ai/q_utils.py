@@ -11,7 +11,7 @@ import traceback
 import sys
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 exitFlag = 0
 
@@ -111,9 +111,10 @@ def process_data(dsThread):
     logger.debug("process_data("+ str(dsThread) + ") exitFlag:" + str(exitFlag))
 
     while not exitFlag:
-        time.sleep(.3)
+        time.sleep(.1)
         if not dsThread.workQueue.empty():
             dsThread.queueLock.acquire()
+            time.sleep(.3)
             dsThread.processingRequest = False
 
             try:
