@@ -96,7 +96,8 @@ body {
   left: 94%;
 }
 .pennai .file-upload-file-input-field {
-  width: 70%;
+  width: 65%;
+  background-color: #2185d0;
 }
 .pennai .file-upload-ordinal-accord-title {
   color: rgba(255,255,255,.9) !important;

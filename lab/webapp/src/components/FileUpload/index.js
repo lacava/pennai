@@ -20,7 +20,8 @@ import {
   Header,
   Accordion,
   Icon,
-  Label
+  Label,
+  Dropdown
 } from 'semantic-ui-react';
 
 class FileUpload extends Component {
@@ -48,6 +49,9 @@ class FileUpload extends Component {
     this.getAccordionInputs = this.getAccordionInputs.bind(this);
     this.generateFileData = this.generateFileData.bind(this);
     this.errorPopupTimeout = this.errorPopupTimeout.bind(this);
+    this.getDataKeys = this.getDataKeys.bind(this);
+    this.getDependentColDropDown = this.getDependentColDropDown.bind(this);
+    this.dropDownClickHandler = this.dropDownClickHandler.bind(this);
     //this.cleanedInput = this.cleanedInput.bind(this)
 
     // help text for dataset upload form - dependent column, categorical & ordinal features
@@ -238,10 +242,10 @@ class FileUpload extends Component {
       let fileExt = uploadFile.name.split('.').pop();
 
       //Papa.parse(event.target.files[0], papaConfig);
-      // use try/catch block to deal with potential bad file input when trying to
-      // generate file/csv preview, use filename to check file extension
+      // check file extensions
       if (fileExtList.includes(fileExt)) {
-
+        // use try/catch block to deal with potential bad file input when trying to
+        // generate file/csv preview, use filename to check file extension
         try {
           Papa.parse(uploadFile, papaConfig);
         }
@@ -250,14 +254,16 @@ class FileUpload extends Component {
           this.setState({
             selectedFile: undefined,
             errorResp: JSON.stringify(error),
-            datasetPreview: null
+            datasetPreview: null,
+            openFileTypePopup: false
           });
         }
 
         this.setState({
           selectedFile: event.target.files[0],
           errorResp: undefined,
-          datasetPreview: null
+          datasetPreview: null,
+          openFileTypePopup: false
         });
 
       } else {
@@ -265,7 +271,8 @@ class FileUpload extends Component {
         this.setState({
           selectedFile: null,
           datasetPreview: null,
-          errorResp: undefined
+          errorResp: undefined,
+          openFileTypePopup: true
         });
       }
     } else {
@@ -273,7 +280,8 @@ class FileUpload extends Component {
       this.setState({
         selectedFile: null,
         datasetPreview: null,
-        errorResp: undefined
+        errorResp: undefined,
+        openFileTypePopup: false
       });
     }
   }
@@ -408,13 +416,56 @@ class FileUpload extends Component {
   }
 
   /**
+  * Get list of keys/column names from data preview
+  * @returns {Array} - use js Object.keys(...) to get list of keys
+  */
+  getDataKeys() {
+    const { datasetPreview } = this.state;
+    let dataKeys = [];
+    if(datasetPreview) {
+      //dataKeys = Object.keys(datasetPreview);
+      dataKeys = datasetPreview.meta.fields;
+    }
+    return dataKeys;
+  }
+
+  /**
+  * create dropdown menu of data column dataKeys
+  */
+  getDependentColDropDown() {
+      let tempKeys = this.getDataKeys();
+      let dropDown = [];
+      tempKeys.forEach(key =>
+        dropDown.push((
+          <Dropdown.Item
+            onClick={this.dropDownClickHandler}
+            key={key}
+            text={key}
+          />
+        ))
+      );
+      return dropDown;
+  }
+
+  /**
+  *
+  */
+  dropDownClickHandler(e, d) {
+    window.console.log('dropdown click handler, e.target ', e.target);
+    window.console.log('dropdown click handler ', d.text);
+    this.setState({
+      dependentCol: d.text
+    });
+  }
+
+  /**
    * Small helper method to create semantic ui accordion for categorical &
    * ordinal text inputs
    * @returns {html} - html ui input elements
    */
    getAccordionInputs() {
      const { activeAccordionIndexes } = this.state;
-     
+
      let ordIconClass; // CSS class to position help icon
      // determine which combos of accordions are open and set respective CSS class
      activeAccordionIndexes.includes(1)
@@ -527,6 +578,9 @@ class FileUpload extends Component {
     let errorContent;
     let dataPrevTable = this.getDataTablePreview();
     let accordionInputs = this.getAccordionInputs();
+    //let columnKeys = this.getDataKeys();
+    let testDropdown = this.getDependentColDropDown();
+    //window.console.log('test data keys ', columnKeys);
     // default to hidden until a file is selected, then display input areas
     let formInputClass = "file-upload-form-hide-inputs";
     // if error message present, display for 4.5 seconds
@@ -537,18 +591,36 @@ class FileUpload extends Component {
     // check if file with filename has been selected, if so then use css to show form
     this.state.selectedFile && this.state.selectedFile.name ?
       formInputClass = "file-upload-form-show-inputs" : null;
+    // display file extension Popup
+    let openFileTypePop;
+    this.state.openFileTypePopup ? openFileTypePop = this.state.openFileTypePopup : openFileTypePop = false;
+    // file input
+    let fileInputElem = (
+      <Input
+        style={{width: '65%', backgroundColor: '#2185d0'}}
+        type="file"
+        label={
+          <div style={{color: 'white', paddingRight: '10px', paddingLeft: '5px'}}>
+            <p>Please select new dataset
+            <br/>
+            Supported file types: (<i>csv, tsv</i>)</p>
+          </div>
+        }
+        id="upload_dataset_file_browser_button"
+        onChange={this.handleSelectedFile}
+      />
+    );
 
     return (
       <div>
         <SceneHeader header="Upload Datasets"/>
         <Form inverted>
           <Segment className="file-upload-segment">
-            <Input
-              className="file-upload-file-input-field"
-              type="file"
-              label="Select new dataset"
-              id="upload_dataset_file_browser_button"
-              onChange={this.handleSelectedFile}
+            <Popup
+              open={openFileTypePop}
+              header="Please check file type"
+              content="Unsupported file extension detected"
+              trigger={fileInputElem}
             />
             <br/>
             <div
@@ -611,6 +683,14 @@ class FileUpload extends Component {
                   }
                 />
             </div>
+            <Dropdown
+              style={{ backgroundColor: "lightcoral" }}
+              text="dependent_col"
+            >
+              <Dropdown.Menu>
+                {testDropdown}
+              </Dropdown.Menu>
+            </Dropdown>
           </Segment>
         </Form>
         {dataPrevTable}
