@@ -21,7 +21,8 @@ import {
   Accordion,
   Icon,
   Label,
-  Dropdown
+  Dropdown,
+  Modal
 } from 'semantic-ui-react';
 
 class FileUpload extends Component {
@@ -39,7 +40,8 @@ class FileUpload extends Component {
       ordinalFeatures: {},
       ordKeys: [],
       ordinalIndex: 0,
-      activeAccordionIndexes: []
+      activeAccordionIndexes: [],
+      ordModal: false
     };
 
     // enter info in text fields
@@ -56,6 +58,7 @@ class FileUpload extends Component {
     this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
     this.ordDropDownClickHandler = this.ordDropDownClickHandler.bind(this);
     this.isJson = this.isJson.bind(this);
+    this.ordModalClose = this.ordModalClose.bind(this);
     //this.cleanedInput = this.cleanedInput.bind(this)
 
     // help text for dataset upload form - dependent column, categorical & ordinal features
@@ -472,7 +475,7 @@ class FileUpload extends Component {
     // loop through values
     datasetPreview.data && datasetPreview.data.forEach(row => {
       tempList.push(row[selectedKey]);
-    })
+    });
     //window.console.log('dropdown click handler, e.target ', e.target);
     //window.console.log('dropdown click handler ', d.text);
     //window.console.log('temp list ', tempList);
@@ -505,9 +508,15 @@ class FileUpload extends Component {
     window.console.log('temp ord feats list ', tempOrdFeats);
     this.setState({
       ordKeys: tempOrdKeys,
-      ordinalFeatures: tempOrdFeats
+      ordinalFeatures: tempOrdFeats,
+      ordModal: true
     });
   }
+
+  ordModalClose() {
+    this.setState({ ordModal: false });
+  }
+
   /* https://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not */
   isJson(item) {
       item = typeof item !== "string"
@@ -539,7 +548,7 @@ class FileUpload extends Component {
      //value={this.state.ordinalFeatures ? JSON.stringify(this.state.ordinalFeatures) : ""}
      let ordTextAreaVal;
      this.isJson(ordinalFeatures) ? ordTextAreaVal = JSON.stringify(ordinalFeatures) : ordTextAreaVal = ordinalFeatures;
-     window.console.log('ord feats ', ordinalFeatures);
+     //window.console.log('ord feats ', ordinalFeatures);
      let ordIconClass; // CSS class to position help icon
      // determine which combos of accordions are open and set respective CSS class
      activeAccordionIndexes.includes(1)
@@ -550,106 +559,137 @@ class FileUpload extends Component {
      activeAccordionIndexes.includes(1) && activeAccordionIndexes.includes(0)
        ? ordIconClass = "file-upload-ord-and-cat-help-icon" : null;
 
+     let ordModalContent = [];
+     // Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
+     //   ordModalContent.push( (
+     //       <div key={selectedOrdKey}>
+     //         selected key: {selectedOrdKey}
+     //         <p>
+     //          values: {ordinalFeatures[selectedOrdKey].join()}
+     //         </p>
+     //       </div>
+     //     )
+     //   )
+     // })
+
      let accordionContent = (
-      <Accordion fluid exclusive={false}>
-         <Accordion.Title
-           className="file-upload-categorical-accord-title"
-           active={activeAccordionIndexes.includes(1)}
-           index={1}
-           onClick={this.handleAccordionClick}
-          >
-           <Icon name='dropdown' />
-           Enter Categorical Features
-         </Accordion.Title>
-           <Popup
-             on="click"
-             position="right center"
-             header="Categorical Features Help"
-             content={
-               <div className="content">
-                {this.catFeatHelpText}
-               </div>
-             }
-             trigger={
-               <Icon
-                 className="file-upload-categorical-help-icon"
-                 inverted
-                 size="large"
-                 color="orange"
-                 name="info circle"
-               />
-             }
-           />
-         <Accordion.Content
-           active={activeAccordionIndexes.includes(1)}
-          >
-           <textarea
-             className="file-upload-categorical-text-area"
-             id="categorical_features_text_area_input"
-             label="Categorical Features"
-             placeholder={"cat_feat_1, cat_feat_2"}
-             value={this.state.catFeatures ? this.state.catFeatures : ""}
-             onChange={this.handleCatFeatures}
-           />
-           <Dropdown
-             style={{ backgroundColor: "lightcoral" }}
-             text="cat_features"
-           >
-             <Dropdown.Menu>
-               {catDropdown}
-             </Dropdown.Menu>
-           </Dropdown>
-         </Accordion.Content>
-         <Accordion.Title
-           className="file-upload-ordinal-accord-title"
-           active={activeAccordionIndexes.includes(0)}
-           index={0}
-           onClick={this.handleAccordionClick}
-          >
-           <Icon name='dropdown' />
-           Enter Ordinal Features
-         </Accordion.Title>
-           <Popup
-             on="click"
-             position="right center"
-             header="Ordinal Features Help"
-             content={
-               <div className="content">
-                {this.ordFeatHelpText}
-               </div>
-             }
-             trigger={
-               <Icon
-                 className={ordIconClass}
-                 inverted
-                 size="large"
-                 color="orange"
-                 name="info circle"
-               />
-             }
-           />
-         <Accordion.Content
-            active={activeAccordionIndexes.includes(0)}
-          >
-           <textarea
-             className="file-upload-ordinal-text-area"
-             id="ordinal_features_text_area_input"
-             label="Ordinal Features"
-             value={ordTextAreaVal}
-             placeholder={"{\"ord_feat_1\": [\"SHORT\", \"TALL\"], \"ord_feat_2\": [\"FIRST\", \"SECOND\", \"THIRD\"]}"}
-             onChange={this.handleOrdinalFeatures}
-           />
-           <Dropdown
-             style={{ backgroundColor: "lightcoral" }}
-             text="ord_features"
-             multiple
-           >
-             <Dropdown.Menu>
-               {ordDropdown}
-             </Dropdown.Menu>
-           </Dropdown>
-         </Accordion.Content>
-       </Accordion>
+       <div>
+        <Accordion fluid exclusive={false}>
+           <Accordion.Title
+             className="file-upload-categorical-accord-title"
+             active={activeAccordionIndexes.includes(1)}
+             index={1}
+             onClick={this.handleAccordionClick}
+            >
+             <Icon name='dropdown' />
+             Enter Categorical Features
+           </Accordion.Title>
+             <Popup
+               on="click"
+               position="right center"
+               header="Categorical Features Help"
+               content={
+                 <div className="content">
+                  {this.catFeatHelpText}
+                 </div>
+               }
+               trigger={
+                 <Icon
+                   className="file-upload-categorical-help-icon"
+                   inverted
+                   size="large"
+                   color="orange"
+                   name="info circle"
+                 />
+               }
+             />
+           <Accordion.Content
+             active={activeAccordionIndexes.includes(1)}
+            >
+             <textarea
+               className="file-upload-categorical-text-area"
+               id="categorical_features_text_area_input"
+               label="Categorical Features"
+               placeholder={"cat_feat_1, cat_feat_2"}
+               value={this.state.catFeatures ? this.state.catFeatures : ""}
+               onChange={this.handleCatFeatures}
+             />
+             <Dropdown
+               style={{ backgroundColor: "lightcoral" }}
+               text="cat_features"
+             >
+               <Dropdown.Menu>
+                 {catDropdown}
+               </Dropdown.Menu>
+             </Dropdown>
+           </Accordion.Content>
+           <Accordion.Title
+             className="file-upload-ordinal-accord-title"
+             active={activeAccordionIndexes.includes(0)}
+             index={0}
+             onClick={this.handleAccordionClick}
+            >
+             <Icon name='dropdown' />
+             Enter Ordinal Features
+           </Accordion.Title>
+             <Popup
+               on="click"
+               position="right center"
+               header="Ordinal Features Help"
+               content={
+                 <div className="content">
+                  {this.ordFeatHelpText}
+                 </div>
+               }
+               trigger={
+                 <Icon
+                   className={ordIconClass}
+                   inverted
+                   size="large"
+                   color="orange"
+                   name="info circle"
+                 />
+               }
+             />
+           <Accordion.Content
+              active={activeAccordionIndexes.includes(0)}
+            >
+             <textarea
+               className="file-upload-ordinal-text-area"
+               id="ordinal_features_text_area_input"
+               label="Ordinal Features"
+               value={ordTextAreaVal}
+               placeholder={"{\"ord_feat_1\": [\"SHORT\", \"TALL\"], \"ord_feat_2\": [\"FIRST\", \"SECOND\", \"THIRD\"]}"}
+               onChange={this.handleOrdinalFeatures}
+             />
+             <Dropdown
+               style={{ backgroundColor: "lightcoral" }}
+               text="ord_features"
+               multiple
+             >
+               <Dropdown.Menu>
+                 {ordDropdown}
+               </Dropdown.Menu>
+             </Dropdown>
+           </Accordion.Content>
+         </Accordion>
+         <Modal
+            basic
+            size="small"
+            open={this.state.ordModal}
+            style={{ marginTop:"0px" }}
+            onClose={this.ordModalClose}
+         >
+           <Modal.Header>
+            Test modal
+           </Modal.Header>
+           <Modal.Content>
+            <h3>minmodal</h3>
+            {ordModalContent}
+            {JSON.stringify(ordinalFeatures, null, 2)}
+           </Modal.Content>
+         </Modal>
+       </div>
      )
      return accordionContent;
    }
