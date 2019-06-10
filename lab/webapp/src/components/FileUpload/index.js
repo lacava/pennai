@@ -571,6 +571,25 @@ class FileUpload extends Component {
      //     )
      //   )
      // })
+     Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
+       ordModalContent.push( (
+           <div key={selectedOrdKey}>
+             select order for: {selectedOrdKey}
+             <p>
+              values: {ordinalFeatures[selectedOrdKey].map( val => {
+                          return (
+                            <div>
+                              <input type="checkbox" name={val} value={val}/>
+                              <label>{val}</label>
+                            </div>
+                          )
+                        }
+                      )}
+             </p>
+           </div>
+         )
+       )
+     })
 
      let accordionContent = (
        <div>
@@ -674,7 +693,7 @@ class FileUpload extends Component {
            </Accordion.Content>
          </Accordion>
          <Modal
-            basic
+
             size="small"
             open={this.state.ordModal}
             style={{ marginTop:"0px" }}
