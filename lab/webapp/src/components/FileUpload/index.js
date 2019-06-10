@@ -37,6 +37,7 @@ class FileUpload extends Component {
       dependentCol: '',
       catFeatures: '',
       ordinalFeatures: {},
+      ordKeys: [],
       ordinalIndex: 0,
       activeAccordionIndexes: []
     };
@@ -50,8 +51,11 @@ class FileUpload extends Component {
     this.generateFileData = this.generateFileData.bind(this);
     this.errorPopupTimeout = this.errorPopupTimeout.bind(this);
     this.getDataKeys = this.getDataKeys.bind(this);
-    this.getDependentColDropDown = this.getDependentColDropDown.bind(this);
-    this.dropDownClickHandler = this.dropDownClickHandler.bind(this);
+    this.getDropDown = this.getDropDown.bind(this);
+    this.colDropDownClickHandler = this.colDropDownClickHandler.bind(this);
+    this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
+    this.ordDropDownClickHandler = this.ordDropDownClickHandler.bind(this);
+    this.isJson = this.isJson.bind(this);
     //this.cleanedInput = this.cleanedInput.bind(this)
 
     // help text for dataset upload form - dependent column, categorical & ordinal features
@@ -432,13 +436,13 @@ class FileUpload extends Component {
   /**
   * create dropdown menu of data column dataKeys
   */
-  getDependentColDropDown() {
+  getDropDown(dropDownClickHandler) {
       let tempKeys = this.getDataKeys();
       let dropDown = [];
       tempKeys.forEach(key =>
         dropDown.push((
           <Dropdown.Item
-            onClick={this.dropDownClickHandler}
+            onClick={dropDownClickHandler}
             key={key}
             text={key}
           />
@@ -450,7 +454,7 @@ class FileUpload extends Component {
   /**
   *
   */
-  dropDownClickHandler(e, d) {
+  colDropDownClickHandler(e, d) {
     window.console.log('dropdown click handler, e.target ', e.target);
     window.console.log('dropdown click handler ', d.text);
     this.setState({
@@ -459,13 +463,83 @@ class FileUpload extends Component {
   }
 
   /**
+  * take selected key and generate comma separated list of values for given key
+  */
+  catDropDownClickHandler(e, d) {
+    const { datasetPreview } = this.state;
+    let selectedKey = d.text;
+    let tempList = [];
+    // loop through values
+    datasetPreview.data && datasetPreview.data.forEach(row => {
+      tempList.push(row[selectedKey]);
+    })
+    //window.console.log('dropdown click handler, e.target ', e.target);
+    //window.console.log('dropdown click handler ', d.text);
+    //window.console.log('temp list ', tempList);
+    this.setState({
+      catFeatures: tempList.join()
+    });
+  }
+
+  /**
+  * take selected key and generate comma separated list of values for given key
+  */
+  ordDropDownClickHandler(e, d) {
+    const { datasetPreview, ordKeys } = this.state;
+    let selectedKey = d.text;
+    let tempOrdKeys = [...ordKeys];
+    let tempOrdFeats = {};
+    let ordIndex = tempOrdKeys.indexOf(selectedKey);
+    ordIndex > -1 ? tempOrdKeys.splice(ordIndex, 1) : tempOrdKeys.push(selectedKey);
+    //window.console.log('dropdown click handler, e.target ', e.target);
+    //window.console.log('dropdown click handler ', d.text);
+    //window.console.log('temp key list ', tempOrdKeys);
+    tempOrdKeys.forEach(ordKey => {
+      let tempVals = [];
+      datasetPreview.data.forEach(row => {
+        //tempOrdFeats[ordKey] = row[ordKey];
+        tempVals.push(row[ordKey])
+      })
+      tempOrdFeats[ordKey] = tempVals;
+    });
+    window.console.log('temp ord feats list ', tempOrdFeats);
+    this.setState({
+      ordKeys: tempOrdKeys,
+      ordinalFeatures: tempOrdFeats
+    });
+  }
+  /* https://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not */
+  isJson(item) {
+      item = typeof item !== "string"
+          ? JSON.stringify(item)
+          : item;
+
+      try {
+          item = JSON.parse(item);
+      } catch (e) {
+          return false;
+      }
+
+      if (typeof item === "object" && item !== null) {
+          return true;
+      }
+
+      return false;
+  }
+
+  /**
    * Small helper method to create semantic ui accordion for categorical &
    * ordinal text inputs
    * @returns {html} - html ui input elements
    */
    getAccordionInputs() {
-     const { activeAccordionIndexes } = this.state;
-
+     const { activeAccordionIndexes, ordinalFeatures } = this.state;
+     let catDropdown = this.getDropDown(this.catDropDownClickHandler);
+     let ordDropdown = this.getDropDown(this.ordDropDownClickHandler);
+     //value={this.state.ordinalFeatures ? JSON.stringify(this.state.ordinalFeatures) : ""}
+     let ordTextAreaVal;
+     this.isJson(ordinalFeatures) ? ordTextAreaVal = JSON.stringify(ordinalFeatures) : ordTextAreaVal = ordinalFeatures;
+     window.console.log('ord feats ', ordinalFeatures);
      let ordIconClass; // CSS class to position help icon
      // determine which combos of accordions are open and set respective CSS class
      activeAccordionIndexes.includes(1)
@@ -514,8 +588,17 @@ class FileUpload extends Component {
              id="categorical_features_text_area_input"
              label="Categorical Features"
              placeholder={"cat_feat_1, cat_feat_2"}
+             value={this.state.catFeatures ? this.state.catFeatures : ""}
              onChange={this.handleCatFeatures}
            />
+           <Dropdown
+             style={{ backgroundColor: "lightcoral" }}
+             text="cat_features"
+           >
+             <Dropdown.Menu>
+               {catDropdown}
+             </Dropdown.Menu>
+           </Dropdown>
          </Accordion.Content>
          <Accordion.Title
            className="file-upload-ordinal-accord-title"
@@ -552,9 +635,19 @@ class FileUpload extends Component {
              className="file-upload-ordinal-text-area"
              id="ordinal_features_text_area_input"
              label="Ordinal Features"
+             value={ordTextAreaVal}
              placeholder={"{\"ord_feat_1\": [\"SHORT\", \"TALL\"], \"ord_feat_2\": [\"FIRST\", \"SECOND\", \"THIRD\"]}"}
              onChange={this.handleOrdinalFeatures}
            />
+           <Dropdown
+             style={{ backgroundColor: "lightcoral" }}
+             text="ord_features"
+             multiple
+           >
+             <Dropdown.Menu>
+               {ordDropdown}
+             </Dropdown.Menu>
+           </Dropdown>
          </Accordion.Content>
        </Accordion>
      )
@@ -579,7 +672,8 @@ class FileUpload extends Component {
     let dataPrevTable = this.getDataTablePreview();
     let accordionInputs = this.getAccordionInputs();
     //let columnKeys = this.getDataKeys();
-    let testDropdown = this.getDependentColDropDown();
+    let testDropdown = this.getDropDown(this.colDropDownClickHandler);
+
     //window.console.log('test data keys ', columnKeys);
     // default to hidden until a file is selected, then display input areas
     let formInputClass = "file-upload-form-hide-inputs";
@@ -636,6 +730,14 @@ class FileUpload extends Component {
                 type="text"
                 onChange={this.handleDepColField}
               />
+              <Dropdown
+                style={{ backgroundColor: "lightcoral" }}
+                text="dependent_col"
+              >
+                <Dropdown.Menu>
+                  {testDropdown}
+                </Dropdown.Menu>
+              </Dropdown>
               <Popup
                 on="click"
                 position="right center"
@@ -683,14 +785,6 @@ class FileUpload extends Component {
                   }
                 />
             </div>
-            <Dropdown
-              style={{ backgroundColor: "lightcoral" }}
-              text="dependent_col"
-            >
-              <Dropdown.Menu>
-                {testDropdown}
-              </Dropdown.Menu>
-            </Dropdown>
           </Segment>
         </Form>
         {dataPrevTable}
