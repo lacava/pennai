@@ -57,6 +57,7 @@ class FileUpload extends Component {
     this.colDropDownClickHandler = this.colDropDownClickHandler.bind(this);
     this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
     this.ordDropDownClickHandler = this.ordDropDownClickHandler.bind(this);
+    this.ordModalCheckboxHandler = this.ordModalCheckboxHandler.bind(this);
     this.isJson = this.isJson.bind(this);
     this.ordModalClose = this.ordModalClose.bind(this);
     //this.cleanedInput = this.cleanedInput.bind(this)
@@ -91,6 +92,7 @@ class FileUpload extends Component {
       catFeatures: '',
       ordinalFeatures: '',
       ordinalIndex: 0,
+      ordOrderList: [],
       activeAccordionIndexes: [],
       errorResp: undefined
     });
@@ -513,6 +515,24 @@ class FileUpload extends Component {
     });
   }
 
+  /**
+  *
+  */
+  ordModalCheckboxHandler(e, key, checkboxVal) {
+    const { ordinalFeatures, ordOrderList } = this.state;
+    window.console.log('ord features ', ordinalFeatures);
+    // window.console.log('e ', e);
+    // window.console.log('key ', key);
+    // window.console.log('checkboxVal ', checkboxVal);
+    //let checkedVal = e.target.value;
+    let tempOrdList = [...ordOrderList];
+    let ordIndex = tempOrdList.indexOf(checkboxVal);
+    ordIndex > -1 ? tempOrdList.splice(ordIndex, 1) : tempOrdList.push(checkboxVal);
+    //window.console.log('temp list', tempOrdList);
+    window.console.log('state list', ordOrderList);
+    this.setState({ordOrderList: tempOrdList})
+  }
+
   ordModalClose() {
     this.setState({ ordModal: false });
   }
@@ -542,7 +562,7 @@ class FileUpload extends Component {
    * @returns {html} - html ui input elements
    */
    getAccordionInputs() {
-     const { activeAccordionIndexes, ordinalFeatures } = this.state;
+     const { activeAccordionIndexes, ordinalFeatures, ordOrderList } = this.state;
      let catDropdown = this.getDropDown(this.catDropDownClickHandler);
      let ordDropdown = this.getDropDown(this.ordDropDownClickHandler);
      //value={this.state.ordinalFeatures ? JSON.stringify(this.state.ordinalFeatures) : ""}
@@ -574,18 +594,24 @@ class FileUpload extends Component {
      Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
        ordModalContent.push( (
            <div key={selectedOrdKey}>
-             select order for: {selectedOrdKey}
-             <p>
-              values: {ordinalFeatures[selectedOrdKey].map( val => {
-                          return (
-                            <div>
-                              <input type="checkbox" name={val} value={val}/>
-                              <label>{val}</label>
-                            </div>
-                          )
-                        }
-                      )}
-             </p>
+              select order for: {selectedOrdKey}
+              <br/>
+              values: {ordinalFeatures[selectedOrdKey].map( (val, i) => {
+                            return (
+                              <p key={selectedOrdKey + "_" + val + "_" + i}>
+                                <input
+                                  type="checkbox"
+                                  name={val}
+                                  value={val}
+                                  onChange={(e) => this.ordModalCheckboxHandler(e, selectedOrdKey, val)}
+                                />
+                                <label>
+                                  {val}
+                                </label>
+                              </p>
+                            )
+                          }
+                        )}
            </div>
          )
        )
@@ -706,6 +732,10 @@ class FileUpload extends Component {
             <h3>minmodal</h3>
             {ordModalContent}
             {JSON.stringify(ordinalFeatures, null, 2)}
+            <div>
+              test order list
+              {ordOrderList && ordOrderList.map((val, i) => (<p>{val} : {i}</p>))}
+            </div>
            </Modal.Content>
          </Modal>
        </div>
