@@ -444,16 +444,26 @@ class FileUpload extends Component {
   getDropDown(dropDownClickHandler) {
       let tempKeys = this.getDataKeys();
       let dropDown = [];
-      tempKeys.forEach(key =>
-        dropDown.push((
-          <Dropdown.Item
-            onClick={dropDownClickHandler}
-            key={key}
-            text={key}
-          />
-        ))
+      let dropDownObjList = [];
+      tempKeys.forEach(key =>{
+          dropDownObjList.push({
+            key: key,
+            value: key,
+            text: key,
+            onClick: dropDownClickHandler
+          })
+          dropDown.push((
+            <Dropdown.Item
+              onClick={dropDownClickHandler}
+              key={key}
+              text={key}
+            />
+          ))
+        }
       );
-      return dropDown;
+      window.console.log('dropdown stuff ', dropDownObjList);
+      //return dropDown;
+      return dropDownObjList;
   }
 
   /**
@@ -471,16 +481,15 @@ class FileUpload extends Component {
   * take selected key and generate comma separated list of values for given key
   */
   catDropDownClickHandler(e, d) {
-    const { datasetPreview } = this.state;
+    const { datasetPreview, catFeatures } = this.state;
     let selectedKey = d.text;
-    let tempList = [];
-    // loop through values
-    datasetPreview.data && datasetPreview.data.forEach(row => {
-      tempList.push(row[selectedKey]);
-    });
-    //window.console.log('dropdown click handler, e.target ', e.target);
-    //window.console.log('dropdown click handler ', d.text);
-    //window.console.log('temp list ', tempList);
+    let tempList;
+    // if categorical features is not empty, try to split on comma
+    catFeatures !== '' ? tempList = catFeatures.split(',') : tempList = [];
+    // keep track of if currently selected category is already in list
+    let catIndex = tempList.indexOf(selectedKey);
+    // if category already in list, remove it, else add it
+    catIndex > -1 ? tempList.splice(catIndex, 1) : tempList.push(selectedKey);
     this.setState({
       catFeatures: tempList.join()
     });
@@ -562,7 +571,7 @@ class FileUpload extends Component {
    * @returns {html} - html ui input elements
    */
    getAccordionInputs() {
-     const { activeAccordionIndexes, ordinalFeatures, ordOrderList } = this.state;
+     const { activeAccordionIndexes, ordinalFeatures, ordOrderList, catFeatures } = this.state;
      let catDropdown = this.getDropDown(this.catDropDownClickHandler);
      let ordDropdown = this.getDropDown(this.ordDropDownClickHandler);
      //value={this.state.ordinalFeatures ? JSON.stringify(this.state.ordinalFeatures) : ""}
@@ -662,10 +671,16 @@ class FileUpload extends Component {
              <Dropdown
                style={{ backgroundColor: "lightcoral" }}
                text="cat_features"
+               search
+               fluid
+               selection
+               multiple
+               value={catFeatures.split(',')}
+               options={catDropdown}
              >
-               <Dropdown.Menu>
+               {/*<Dropdown.Menu>
                  {catDropdown}
-               </Dropdown.Menu>
+               </Dropdown.Menu>*/}
              </Dropdown>
            </Accordion.Content>
            <Accordion.Title
@@ -711,10 +726,11 @@ class FileUpload extends Component {
                style={{ backgroundColor: "lightcoral" }}
                text="ord_features"
                multiple
+               options={ordDropdown}
              >
-               <Dropdown.Menu>
+               {/*<Dropdown.Menu>
                  {ordDropdown}
-               </Dropdown.Menu>
+               </Dropdown.Menu>*/}
              </Dropdown>
            </Accordion.Content>
          </Accordion>
@@ -824,7 +840,7 @@ class FileUpload extends Component {
                 text="dependent_col"
               >
                 <Dropdown.Menu>
-                  {testDropdown}
+                  {/*testDropdown*/}
                 </Dropdown.Menu>
               </Dropdown>
               <Popup
