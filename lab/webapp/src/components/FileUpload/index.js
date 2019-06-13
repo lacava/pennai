@@ -176,7 +176,7 @@ class FileUpload extends Component {
       // get raw user input from state
 
       // try to parse ord features input as JSON if not empty
-      if(ordFeatures !== '') {
+      if(ordFeatures !== '' && !this.isJson(ordFeatures)) {
         try {
           ordFeatures = JSON.parse(this.state.ordinalFeatures);
         } catch(e) {
@@ -513,7 +513,7 @@ class FileUpload extends Component {
       let tempVals = [];
       datasetPreview.data.forEach(row => {
         //tempOrdFeats[ordKey] = row[ordKey];
-        tempVals.push(row[ordKey])
+        !tempVals.includes(row[ordKey]) ? tempVals.push(row[ordKey]) : null;
       })
       tempOrdFeats[ordKey] = tempVals;
     });
@@ -881,10 +881,11 @@ class FileUpload extends Component {
               <Dropdown
                 style={{ backgroundColor: "lightcoral" }}
                 text="dependent_col"
+                options={testDropdown}
               >
-                <Dropdown.Menu>
-                  {/*testDropdown*/}
-                </Dropdown.Menu>
+                {/*<Dropdown.Menu>
+                  testDropdown
+                </Dropdown.Menu>*/}
               </Dropdown>
               <Popup
                 on="click"
