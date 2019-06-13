@@ -7,6 +7,7 @@ import { getSortedDatasets } from '../../data/datasets';
 import { fetchDatasets } from '../../data/datasets/actions';
 import { uploadDataset } from '../../data/datasets/dataset/actions';
 import SceneHeader from '../SceneHeader';
+import SortableList from './components/SortableList';
 import { put } from '../../utils/apiHelper';
 import Papa from 'papaparse';
 import {
@@ -461,7 +462,7 @@ class FileUpload extends Component {
           ))
         }
       );
-      window.console.log('dropdown stuff ', dropDownObjList);
+      //window.console.log('dropdown stuff ', dropDownObjList);
       //return dropDown;
       return dropDownObjList;
   }
@@ -589,38 +590,79 @@ class FileUpload extends Component {
        ? ordIconClass = "file-upload-ord-and-cat-help-icon" : null;
 
      let ordModalContent = [];
+     /*
+     <Segment>
+       <h3>test drag n' drop list</h3>
+       <SortableList
+         items={this.state.items_test}
+         onChange={(items_test) => {
+           this.setState({items_test})
+         }}
+       />
+     </Segment>
+     */
      // Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
      //   ordModalContent.push( (
      //       <div key={selectedOrdKey}>
-     //         selected key: {selectedOrdKey}
-     //         <p>
-     //          values: {ordinalFeatures[selectedOrdKey].join()}
-     //         </p>
+     //          select order for: {selectedOrdKey}
+     //          <br/>
+     //          values: {ordinalFeatures[selectedOrdKey].map( (val, i) => {
+     //                        return (
+     //                          <p key={selectedOrdKey + "_" + val + "_" + i}>
+     //                            <input
+     //                              type="checkbox"
+     //                              name={val}
+     //                              value={val}
+     //                              onChange={(e) => this.ordModalCheckboxHandler(e, selectedOrdKey, val)}
+     //                            />
+     //                            <label>
+     //                              {val}
+     //                            </label>
+     //                          </p>
+     //                        )
+     //                      }
+     //                    )}
      //       </div>
      //     )
      //   )
      // })
+
+     /*
+     <Segment>
+       <h3>test drag n' drop list</h3>
+       <SortableList
+         items={ordinalFeatures[selectedOrdKey]}
+         onChange={(items_test) => {
+           this.setState({ordOrderList: items_test})
+         }}
+       />
+     </Segment>
+
+     */
+
      Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
        ordModalContent.push( (
            <div key={selectedOrdKey}>
               select order for: {selectedOrdKey}
               <br/>
-              values: {ordinalFeatures[selectedOrdKey].map( (val, i) => {
-                            return (
-                              <p key={selectedOrdKey + "_" + val + "_" + i}>
-                                <input
-                                  type="checkbox"
-                                  name={val}
-                                  value={val}
-                                  onChange={(e) => this.ordModalCheckboxHandler(e, selectedOrdKey, val)}
-                                />
-                                <label>
-                                  {val}
-                                </label>
-                              </p>
-                            )
-                          }
-                        )}
+              select_order_mock: {
+
+                      <Segment>
+                        <h3>test drag n' drop list</h3>
+                        <SortableList
+                          items={ordinalFeatures[selectedOrdKey]}
+                          onChange={(items_test) => {
+                            let tempOrdState = {...ordinalFeatures};
+                            tempOrdState[selectedOrdKey] = items_test;
+                            window.console.log('new order', items_test);
+                            this.setState({ordinalFeatures: tempOrdState})
+                            //this.setState({items_test});
+                          }}
+                        />
+                      </Segment>
+
+                  }
+                )}
            </div>
          )
        )
@@ -748,12 +790,13 @@ class FileUpload extends Component {
             <h3>minmodal</h3>
             {ordModalContent}
             {JSON.stringify(ordinalFeatures, null, 2)}
-            <div>
+            {/*<div>
               test order list
-              {ordOrderList && ordOrderList.map((val, i) => (<p>{val} : {i}</p>))}
-            </div>
+              {ordOrderList && ordOrderList.map((val, i) => (<p key={val + 'test_' + i}>{val} : {i}</p>))}
+            </div>*/}
            </Modal.Content>
          </Modal>
+
        </div>
      )
      return accordionContent;
