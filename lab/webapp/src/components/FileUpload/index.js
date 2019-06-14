@@ -55,10 +55,9 @@ class FileUpload extends Component {
     this.errorPopupTimeout = this.errorPopupTimeout.bind(this);
     this.getDataKeys = this.getDataKeys.bind(this);
     this.getDropDown = this.getDropDown.bind(this);
-    this.colDropDownClickHandler = this.colDropDownClickHandler.bind(this);
+    this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
     this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
     this.ordDropDownClickHandler = this.ordDropDownClickHandler.bind(this);
-    this.ordModalCheckboxHandler = this.ordModalCheckboxHandler.bind(this);
     this.isJson = this.isJson.bind(this);
     this.ordModalClose = this.ordModalClose.bind(this);
     //this.cleanedInput = this.cleanedInput.bind(this)
@@ -165,27 +164,32 @@ class FileUpload extends Component {
    * @returns {FormData} - FormData object containing user input data
    */
   generateFileData = () => {
-
     const data = new FormData();
     this.setState({errorResp: undefined});
     let depCol = this.state.dependentCol;
     let ordFeatures = this.state.ordinalFeatures;
     let catFeatures = this.state.catFeatures;
-
-    if(this.state.selectedFile && this.state.selectedFile.name) {
+    let selectedFile = this.state.selectedFile;
+    let tempOrdinalFeats = '';
+    if(selectedFile && selectedFile.name) {
       // get raw user input from state
 
       // try to parse ord features input as JSON if not empty
-      if(ordFeatures !== '' && !this.isJson(ordFeatures)) {
+      if(ordFeatures !== '' ) {
         try {
-          ordFeatures = JSON.parse(this.state.ordinalFeatures);
+          // only try to parse input with JSON.parse() if string
+          if(typeof ordFeatures === 'string') {
+            tempOrdinalFeats = JSON.parse(ordFeatures);
+          } else if(this.isJson(ordFeatures)) {
+            tempOrdinalFeats = ordFeatures;
+          }
         } catch(e) {
           // if expecting oridinal stuff, return error to stop upload process
           return { errorResp: e.toString() };
         }
       }
 
-      if(catFeatures !== "") {
+      if(catFeatures !== '') {
         // remove all whitespace
         catFeatures = catFeatures.replace(/ /g, '');
         // parse on comma
@@ -193,7 +197,7 @@ class FileUpload extends Component {
         // if input contains empty items - ex: 'one,,two,three'
         // filter out resulting empty item
         catFeatures = catFeatures.filter(item => {
-          return item !== ""
+          return item !== ''
         })
       }
 
@@ -205,7 +209,7 @@ class FileUpload extends Component {
                 'timestamp': Date.now(),
                 'dependent_col' : depCol,
                 'categorical_features': catFeatures,
-                'ordinal_features': ordFeatures
+                'ordinal_features': tempOrdinalFeats
               });
 
       data.append('_metadata', metadata);
@@ -371,6 +375,141 @@ class FileUpload extends Component {
    }
 
   /**
+  * Get list of keys/column names from data preview
+  * @returns {Array} - use js Object.keys(...) to get list of keys
+  */
+  getDataKeys() {
+    const { datasetPreview } = this.state;
+    let dataKeys = [];
+    if(datasetPreview) {
+      //dataKeys = Object.keys(datasetPreview);
+      dataKeys = datasetPreview.meta.fields;
+    }
+    return dataKeys;
+  }
+
+  /**
+  * simple click handler for selecting dependent column
+  */
+  depColDropDownClickHandler(e, d) {
+    this.setState({
+      dependentCol: d.text
+    });
+  }
+
+  /**
+  * take selected key and generate comma separated list of values for given key
+  */
+  catDropDownClickHandler(e, d) {
+    const { datasetPreview, catFeatures } = this.state;
+    let selectedKey = d.text;
+    let tempList;
+    // if categorical features is not empty, try to split on comma
+    catFeatures !== '' ? tempList = catFeatures.split(',') : tempList = [];
+    // keep track of if currently selected category is already in list
+    let catIndex = tempList.indexOf(selectedKey);
+    // if category already in list, remove it, else add it
+    catIndex > -1 ? tempList.splice(catIndex, 1) : tempList.push(selectedKey);
+    this.setState({
+      catFeatures: tempList.join()
+    });
+  }
+
+  /**
+  * take selected key and generate comma separated list of values for given key
+  */
+  ordDropDownClickHandler(e, d) {
+    const { datasetPreview, ordKeys } = this.state;
+    let selectedKey = d.text;
+    let tempOrdKeys = [...ordKeys];
+    let tempOrdFeats = {};
+    let ordIndex = tempOrdKeys.indexOf(selectedKey);
+    // keep track of currently selected ordinal feature(s)
+    ordIndex > -1 ? tempOrdKeys.splice(ordIndex, 1) : tempOrdKeys.push(selectedKey);
+    tempOrdKeys.forEach(ordKey => {
+      let tempVals = [];
+      datasetPreview.data.forEach(row => {
+        //tempOrdFeats[ordKey] = row[ordKey];
+        !tempVals.includes(row[ordKey]) ? tempVals.push(row[ordKey]) : null;
+      })
+      tempOrdFeats[ordKey] = tempVals;
+    });
+    // window.console.log('temp ord feats list ', tempOrdFeats);
+    this.setState({
+      ordKeys: tempOrdKeys,
+      ordinalFeatures: tempOrdFeats,
+      ordModal: true
+    });
+  }
+
+  /**
+  * use to close popup when select
+  */
+  ordModalClose() {
+    this.setState({ ordModal: false });
+  }
+  /**
+  *  Simple timeout function, resets error message
+  */
+  errorPopupTimeout() {
+    this.setState({
+      errorResp: undefined
+    });
+  }
+  /*
+  * Basic helper to test for JSON
+  * https://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
+  */
+  isJson(item) {
+      item = typeof item !== 'string'
+          ? JSON.stringify(item)
+          : item;
+
+      try {
+          item = JSON.parse(item);
+      } catch (e) {
+          return false;
+      }
+
+      if (typeof item === 'object' && item !== null) {
+          return true;
+      }
+
+      return false;
+  }
+  /****************************************************************************/
+  /*        Helper methods to create inputs & form elements                   */
+  /****************************************************************************/
+
+  /**
+  * create dropdown menu of data column dataKeys
+  */
+  getDropDown(dropDownClickHandler) {
+      let tempKeys = this.getDataKeys();
+      let dropDown = [];
+      let dropDownObjList = [];
+      tempKeys.forEach(key =>{
+          dropDownObjList.push({
+            key: key,
+            value: key,
+            text: key,
+            onClick: dropDownClickHandler
+          })
+          dropDown.push((
+            <Dropdown.Item
+              onClick={dropDownClickHandler}
+              key={key}
+              text={key}
+            />
+          ))
+        }
+      );
+      //window.console.log('dropdown stuff ', dropDownObjList);
+      //return dropDown;
+      return dropDownObjList;
+  }
+
+  /**
    * Small helper method to create table for dataset preview upon selecting csv file.
    * Copied from Dataset component - relies upon javascript library papaparse to
    * partially read selected file and semantic ui to generate preview content,
@@ -421,149 +560,7 @@ class FileUpload extends Component {
         </div>
       )
     }
-
     return dataPrevTable;
-  }
-
-  /**
-  * Get list of keys/column names from data preview
-  * @returns {Array} - use js Object.keys(...) to get list of keys
-  */
-  getDataKeys() {
-    const { datasetPreview } = this.state;
-    let dataKeys = [];
-    if(datasetPreview) {
-      //dataKeys = Object.keys(datasetPreview);
-      dataKeys = datasetPreview.meta.fields;
-    }
-    return dataKeys;
-  }
-
-  /**
-  * create dropdown menu of data column dataKeys
-  */
-  getDropDown(dropDownClickHandler) {
-      let tempKeys = this.getDataKeys();
-      let dropDown = [];
-      let dropDownObjList = [];
-      tempKeys.forEach(key =>{
-          dropDownObjList.push({
-            key: key,
-            value: key,
-            text: key,
-            onClick: dropDownClickHandler
-          })
-          dropDown.push((
-            <Dropdown.Item
-              onClick={dropDownClickHandler}
-              key={key}
-              text={key}
-            />
-          ))
-        }
-      );
-      //window.console.log('dropdown stuff ', dropDownObjList);
-      //return dropDown;
-      return dropDownObjList;
-  }
-
-  /**
-  *
-  */
-  colDropDownClickHandler(e, d) {
-    window.console.log('dropdown click handler, e.target ', e.target);
-    window.console.log('dropdown click handler ', d.text);
-    this.setState({
-      dependentCol: d.text
-    });
-  }
-
-  /**
-  * take selected key and generate comma separated list of values for given key
-  */
-  catDropDownClickHandler(e, d) {
-    const { datasetPreview, catFeatures } = this.state;
-    let selectedKey = d.text;
-    let tempList;
-    // if categorical features is not empty, try to split on comma
-    catFeatures !== '' ? tempList = catFeatures.split(',') : tempList = [];
-    // keep track of if currently selected category is already in list
-    let catIndex = tempList.indexOf(selectedKey);
-    // if category already in list, remove it, else add it
-    catIndex > -1 ? tempList.splice(catIndex, 1) : tempList.push(selectedKey);
-    this.setState({
-      catFeatures: tempList.join()
-    });
-  }
-
-  /**
-  * take selected key and generate comma separated list of values for given key
-  */
-  ordDropDownClickHandler(e, d) {
-    const { datasetPreview, ordKeys } = this.state;
-    let selectedKey = d.text;
-    let tempOrdKeys = [...ordKeys];
-    let tempOrdFeats = {};
-    let ordIndex = tempOrdKeys.indexOf(selectedKey);
-    ordIndex > -1 ? tempOrdKeys.splice(ordIndex, 1) : tempOrdKeys.push(selectedKey);
-    //window.console.log('dropdown click handler, e.target ', e.target);
-    //window.console.log('dropdown click handler ', d.text);
-    //window.console.log('temp key list ', tempOrdKeys);
-    tempOrdKeys.forEach(ordKey => {
-      let tempVals = [];
-      datasetPreview.data.forEach(row => {
-        //tempOrdFeats[ordKey] = row[ordKey];
-        !tempVals.includes(row[ordKey]) ? tempVals.push(row[ordKey]) : null;
-      })
-      tempOrdFeats[ordKey] = tempVals;
-    });
-    window.console.log('temp ord feats list ', tempOrdFeats);
-    this.setState({
-      ordKeys: tempOrdKeys,
-      ordinalFeatures: tempOrdFeats,
-      ordModal: true
-    });
-  }
-
-  /**
-  *
-  */
-  ordModalCheckboxHandler(e, key, checkboxVal) {
-    const { ordinalFeatures, ordOrderList } = this.state;
-    window.console.log('ord features ', ordinalFeatures);
-    // window.console.log('e ', e);
-    // window.console.log('key ', key);
-    // window.console.log('checkboxVal ', checkboxVal);
-    //let checkedVal = e.target.value;
-    let tempOrdList = [...ordOrderList];
-    let ordIndex = tempOrdList.indexOf(checkboxVal);
-    ordIndex > -1 ? tempOrdList.splice(ordIndex, 1) : tempOrdList.push(checkboxVal);
-    //window.console.log('temp list', tempOrdList);
-    window.console.log('state list', ordOrderList);
-    this.setState({ordOrderList: tempOrdList})
-  }
-
-  ordModalClose() {
-    this.setState({ ordModal: false });
-  }
-
-  /* https://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not */
-  isJson(item) {
-      item = typeof item !== "string"
-          ? JSON.stringify(item)
-          : item;
-
-      try {
-          item = JSON.parse(item);
-      } catch (e) {
-          return false;
-      }
-
-      if (typeof item === "object" && item !== null) {
-          return true;
-      }
-
-      return false;
   }
 
   /**
@@ -575,11 +572,14 @@ class FileUpload extends Component {
      const { activeAccordionIndexes, ordinalFeatures, ordOrderList, catFeatures } = this.state;
      let catDropdown = this.getDropDown(this.catDropDownClickHandler);
      let ordDropdown = this.getDropDown(this.ordDropDownClickHandler);
-     //value={this.state.ordinalFeatures ? JSON.stringify(this.state.ordinalFeatures) : ""}
      let ordTextAreaVal;
-     this.isJson(ordinalFeatures) ? ordTextAreaVal = JSON.stringify(ordinalFeatures) : ordTextAreaVal = ordinalFeatures;
-     //window.console.log('ord feats ', ordinalFeatures);
      let ordIconClass; // CSS class to position help icon
+
+     // check input type for string to prevent attempting to stringify a string
+     this.isJson(ordinalFeatures) && typeof ordinalFeatures !== "string"
+       ? ordTextAreaVal = JSON.stringify(ordinalFeatures)
+       : ordTextAreaVal = ordinalFeatures;
+
      // determine which combos of accordions are open and set respective CSS class
      activeAccordionIndexes.includes(1)
        ? ordIconClass = "file-upload-ord-with-cat-help-icon"
@@ -590,55 +590,6 @@ class FileUpload extends Component {
        ? ordIconClass = "file-upload-ord-and-cat-help-icon" : null;
 
      let ordModalContent = [];
-     /*
-     <Segment>
-       <h3>test drag n' drop list</h3>
-       <SortableList
-         items={this.state.items_test}
-         onChange={(items_test) => {
-           this.setState({items_test})
-         }}
-       />
-     </Segment>
-     */
-     // Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
-     //   ordModalContent.push( (
-     //       <div key={selectedOrdKey}>
-     //          select order for: {selectedOrdKey}
-     //          <br/>
-     //          values: {ordinalFeatures[selectedOrdKey].map( (val, i) => {
-     //                        return (
-     //                          <p key={selectedOrdKey + "_" + val + "_" + i}>
-     //                            <input
-     //                              type="checkbox"
-     //                              name={val}
-     //                              value={val}
-     //                              onChange={(e) => this.ordModalCheckboxHandler(e, selectedOrdKey, val)}
-     //                            />
-     //                            <label>
-     //                              {val}
-     //                            </label>
-     //                          </p>
-     //                        )
-     //                      }
-     //                    )}
-     //       </div>
-     //     )
-     //   )
-     // })
-
-     /*
-     <Segment>
-       <h3>test drag n' drop list</h3>
-       <SortableList
-         items={ordinalFeatures[selectedOrdKey]}
-         onChange={(items_test) => {
-           this.setState({ordOrderList: items_test})
-         }}
-       />
-     </Segment>
-
-     */
 
      Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
        ordModalContent.push( (
@@ -650,7 +601,10 @@ class FileUpload extends Component {
                       <Segment>
                         <h3>test drag n' drop list</h3>
                         <SortableList
-                          items={ordinalFeatures[selectedOrdKey]}
+                          items={
+                            ordinalFeatures[selectedOrdKey] && ordinalFeatures[selectedOrdKey].length
+                              ? ordinalFeatures[selectedOrdKey] : []
+                          }
                           onChange={(items_test) => {
                             let tempOrdState = {...ordinalFeatures};
                             tempOrdState[selectedOrdKey] = items_test;
@@ -720,9 +674,6 @@ class FileUpload extends Component {
                value={catFeatures.split(',')}
                options={catDropdown}
              >
-               {/*<Dropdown.Menu>
-                 {catDropdown}
-               </Dropdown.Menu>*/}
              </Dropdown>
            </Accordion.Content>
            <Accordion.Title
@@ -770,9 +721,6 @@ class FileUpload extends Component {
                multiple
                options={ordDropdown}
              >
-               {/*<Dropdown.Menu>
-                 {ordDropdown}
-               </Dropdown.Menu>*/}
              </Dropdown>
            </Accordion.Content>
          </Accordion>
@@ -790,25 +738,12 @@ class FileUpload extends Component {
             <h3>minmodal</h3>
             {ordModalContent}
             {JSON.stringify(ordinalFeatures, null, 2)}
-            {/*<div>
-              test order list
-              {ordOrderList && ordOrderList.map((val, i) => (<p key={val + 'test_' + i}>{val} : {i}</p>))}
-            </div>*/}
            </Modal.Content>
          </Modal>
 
        </div>
      )
      return accordionContent;
-   }
-
-   /**
-   *  Simple timeout function, resets error message
-   */
-   errorPopupTimeout() {
-     this.setState({
-       errorResp: undefined
-     });
    }
 
   render() {
@@ -820,7 +755,7 @@ class FileUpload extends Component {
     let dataPrevTable = this.getDataTablePreview();
     let accordionInputs = this.getAccordionInputs();
     //let columnKeys = this.getDataKeys();
-    let testDropdown = this.getDropDown(this.colDropDownClickHandler);
+    let depColDropdown = this.getDropDown(this.depColDropDownClickHandler);
 
     //window.console.log('test data keys ', columnKeys);
     // default to hidden until a file is selected, then display input areas
@@ -881,11 +816,8 @@ class FileUpload extends Component {
               <Dropdown
                 style={{ backgroundColor: "lightcoral" }}
                 text="dependent_col"
-                options={testDropdown}
+                options={depColDropdown}
               >
-                {/*<Dropdown.Menu>
-                  testDropdown
-                </Dropdown.Menu>*/}
               </Dropdown>
               <Popup
                 on="click"
