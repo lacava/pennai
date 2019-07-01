@@ -269,33 +269,49 @@ class FileUpload extends Component {
             selectedFile: undefined,
             errorResp: JSON.stringify(error),
             datasetPreview: null,
-            openFileTypePopup: false
+            openFileTypePopup: false,
+            dependentCol: '',
+            catFeatures: '',
+            ordinalFeatures: '',
+            ordKeys: []
           });
         }
-
+        // set state with file preview if parse successful, reset form input
         this.setState({
           selectedFile: event.target.files[0],
           errorResp: undefined,
           datasetPreview: null,
-          openFileTypePopup: false
+          openFileTypePopup: false,
+          dependentCol: '',
+          catFeatures: '',
+          ordinalFeatures: '',
+          ordKeys: []
         });
-
       } else {
+        // reset state as fallback if no file type is not supported
         console.warn('Filetype not csv or tsv:', uploadFile);
         this.setState({
           selectedFile: null,
           datasetPreview: null,
           errorResp: undefined,
-          openFileTypePopup: true
+          openFileTypePopup: true,
+          dependentCol: '',
+          catFeatures: '',
+          ordinalFeatures: '',
+          ordKeys: []
         });
       }
     } else {
-      // reset state as fallback
+      // reset state as fallback if no file selected
       this.setState({
         selectedFile: null,
         datasetPreview: null,
         errorResp: undefined,
-        openFileTypePopup: false
+        openFileTypePopup: false,
+        dependentCol: '',
+        catFeatures: '',
+        ordinalFeatures: '',
+        ordKeys: []
       });
     }
   }
@@ -597,7 +613,6 @@ class FileUpload extends Component {
               select order for: {selectedOrdKey}
               <br/>
               select_order_mock: {
-
                       <Segment>
                         <h3>test drag n' drop list</h3>
                         <SortableList
@@ -614,7 +629,6 @@ class FileUpload extends Component {
                           }}
                         />
                       </Segment>
-
                   }
                 )}
            </div>
@@ -804,21 +818,34 @@ class FileUpload extends Component {
               id="file-upload-form-input-area"
               className={formInputClass}
             >
+              <br/>
+              <p style={{color: 'white'}}>
+                Dependent Column
+              </p>
+              <label>
+                <Dropdown
+                  style={{
+                    backgroundColor: "white",
+                    paddingLeft: "12px"
+                  }}
+                  selection
+                  text="dependent_col"
+                  options={depColDropdown}
+                >
+                </Dropdown>
+                Select the dependent column
+              </label>
               <Form.Input
-                label="Dependent Column"
                 id="dependent_column_text_field_input"
-                className="file-upload-dependent-text-field"
-                placeholder="class"
-                value={this.state.dependentCol ? this.state.dependentCol : ""}
-                type="text"
-                onChange={this.handleDepColField}
-              />
-              <Dropdown
-                style={{ backgroundColor: "lightcoral" }}
-                text="dependent_col"
-                options={depColDropdown}
               >
-              </Dropdown>
+                <input
+                  className="file-upload-dependent-text-field"
+                  placeholder="Or enter dataset dependent column manually"
+                  value={this.state.dependentCol ? this.state.dependentCol : ""}
+                  type="text"
+                  onChange={this.handleDepColField}
+                />
+              </Form.Input>
               <Popup
                 on="click"
                 position="right center"
