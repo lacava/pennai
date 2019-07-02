@@ -75,7 +75,7 @@ body {
 /* category & ordinal text areas both expanded */
 .pennai .file-upload-ord-and-cat-help-icon {
   position: absolute;
-  top: 53%;
+  top: 52%;
   left: 94%;
 }
 /* no text area/accordion expanded */
@@ -87,7 +87,7 @@ body {
 /* only ordinal text area/accordion expanded */
 .pennai .file-upload-just-ordinal-help-icon {
   position: absolute;
-  top: 17.5%;
+  top: 15%;
   left: 94%;
 }
 .pennai .file-upload-dependent-help-icon {

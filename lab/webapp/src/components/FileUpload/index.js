@@ -670,6 +670,18 @@ class FileUpload extends Component {
            <Accordion.Content
              active={activeAccordionIndexes.includes(1)}
             >
+              <Dropdown
+                style={{
+                  width: '100%'
+                }}
+                text="Select categorical features"
+                search
+                selection
+                multiple
+                value={catFeatures.split(',')}
+                options={catDropdown}
+              >
+              </Dropdown>
              <textarea
                className="file-upload-categorical-text-area"
                id="categorical_features_text_area_input"
@@ -678,17 +690,7 @@ class FileUpload extends Component {
                value={this.state.catFeatures ? this.state.catFeatures : ""}
                onChange={this.handleCatFeatures}
              />
-             <Dropdown
-               style={{ backgroundColor: "lightcoral" }}
-               text="cat_features"
-               search
-               fluid
-               selection
-               multiple
-               value={catFeatures.split(',')}
-               options={catDropdown}
-             >
-             </Dropdown>
+
            </Accordion.Content>
            <Accordion.Title
              className="file-upload-ordinal-accord-title"
@@ -721,6 +723,17 @@ class FileUpload extends Component {
            <Accordion.Content
               active={activeAccordionIndexes.includes(0)}
             >
+              <Dropdown
+                style={{
+                  backgroundColor: "white",
+                  width: "100%"
+                }}
+                text="Select ordinal features"
+                multiple
+                search
+                options={ordDropdown}
+              >
+              </Dropdown>
              <textarea
                className="file-upload-ordinal-text-area"
                id="ordinal_features_text_area_input"
@@ -729,13 +742,6 @@ class FileUpload extends Component {
                placeholder={"{\"ord_feat_1\": [\"SHORT\", \"TALL\"], \"ord_feat_2\": [\"FIRST\", \"SECOND\", \"THIRD\"]}"}
                onChange={this.handleOrdinalFeatures}
              />
-             <Dropdown
-               style={{ backgroundColor: "lightcoral" }}
-               text="ord_features"
-               multiple
-               options={ordDropdown}
-             >
-             </Dropdown>
            </Accordion.Content>
          </Accordion>
          <Modal
@@ -822,7 +828,7 @@ class FileUpload extends Component {
               <p style={{color: 'white'}}>
                 Dependent Column
               </p>
-              <label>
+              {/*}<label>
                 <Dropdown
                   style={{
                     backgroundColor: "white",
@@ -834,9 +840,22 @@ class FileUpload extends Component {
                 >
                 </Dropdown>
                 Select the dependent column
-              </label>
+              </label>*/}
+              <Dropdown
+                style={{
+                  backgroundColor: "white",
+                  paddingLeft: "12px"
+                }}
+                selection
+                text="Select dependent column"
+                options={depColDropdown}
+              >
+              </Dropdown>
               <Form.Input
                 id="dependent_column_text_field_input"
+                style={{
+                  width: '65%'
+                }}
               >
                 <input
                   className="file-upload-dependent-text-field"
