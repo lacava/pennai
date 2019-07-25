@@ -852,12 +852,13 @@ class FileUpload extends Component {
               >
               </Dropdown>
               <Form.Input
-                id="dependent_column_text_field_input"
+                id="dep_column_form_input"
                 style={{
                   width: '65%'
                 }}
               >
                 <input
+                  id="dependent_column_text_field_input"
                   className="file-upload-dependent-text-field"
                   placeholder="Or enter dataset dependent column manually"
                   value={this.state.dependentCol ? this.state.dependentCol : ""}

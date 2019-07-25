@@ -69,8 +69,12 @@ class Dataset extends Component {
     if(dataset === 'fetching') { return null; }
 
     // categorical_features & ordinal_features
-    let cat_feats = dataset.files[0].categorical_features;
-    let ord_feats = dataset.files[0].ordinal_features;
+    let cat_feats = [];
+    let ord_feats = [];
+    if(dataset.files) {
+      cat_feats = dataset.files[0].categorical_features;
+      ord_feats = dataset.files[0].ordinal_features;
+    } 
     let ord_body = [];
     Object.entries(ord_feats) && Object.entries(ord_feats).forEach(([key,value]) => {
       // window.console.log("ord feats key: ", key);
