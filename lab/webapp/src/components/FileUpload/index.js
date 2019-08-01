@@ -6,6 +6,7 @@ import React, { Component } from 'react';
 import { getSortedDatasets } from '../../data/datasets';
 import { fetchDatasets } from '../../data/datasets/actions';
 import { uploadDataset } from '../../data/datasets/dataset/actions';
+import FileUploadForm from './components/FileUploadForm'
 import SceneHeader from '../SceneHeader';
 import SortableList from './components/SortableList';
 import { put } from '../../utils/apiHelper';
@@ -435,9 +436,25 @@ class FileUpload extends Component {
   * take selected key and generate comma separated list of values for given key
   */
   ordDropDownClickHandler(e, d) {
-    const { datasetPreview, ordKeys } = this.state;
+    const { datasetPreview, ordKeys, ordinalFeatures } = this.state;
     let selectedKey = d.text;
-    let tempOrdKeys = [...ordKeys];
+    //let tempOrdKeys = [...ordKeys];
+    let tempOrdKeys = [];
+    // if ordinalFeatures is proper json, can get keys
+    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
+      tempOrdKeys = Object.keys(ordinalFeatures);
+    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
+      window.console.log('trying to parse', ordinalFeatures);
+      let tempObj;
+      try {
+          tempObj = JSON.parse(ordinalFeatures);
+          tempOrdKeys = Object.keys(tempObj)
+      } catch (e) {
+          window.console.error(' uh o ----> ', e);
+          //return false;
+      }
+    }
+
     let tempOrdFeats = {};
     let ordIndex = tempOrdKeys.indexOf(selectedKey);
     // keep track of currently selected ordinal feature(s)
@@ -450,7 +467,7 @@ class FileUpload extends Component {
       })
       tempOrdFeats[ordKey] = tempVals;
     });
-    // window.console.log('temp ord feats list ', tempOrdFeats);
+    window.console.log('temp ord feats list for dropdown', tempOrdFeats);
     this.setState({
       ordKeys: tempOrdKeys,
       ordinalFeatures: tempOrdFeats,
@@ -498,26 +515,28 @@ class FileUpload extends Component {
   /****************************************************************************/
 
   /**
-  * create dropdown menu of data column dataKeys
+  * create dropdown menu of data column dataKeys, pass in callback for each item
   */
   getDropDown(dropDownClickHandler) {
+      //window.console.log('making dropdown');
       let tempKeys = this.getDataKeys();
       let dropDown = [];
       let dropDownObjList = [];
-      tempKeys.forEach(key =>{
+      tempKeys.forEach((key, i) =>{
+          //window.console.log('making dropdown', i);
           dropDownObjList.push({
-            key: key,
+            key: key + '_' + i,
             value: key,
             text: key,
             onClick: dropDownClickHandler
           })
-          dropDown.push((
-            <Dropdown.Item
-              onClick={dropDownClickHandler}
-              key={key}
-              text={key}
-            />
-          ))
+          // dropDown.push((
+          //   <Dropdown.Item
+          //     onClick={dropDownClickHandler}
+          //     key={key}
+          //     text={key}
+          //   />
+          // ))
         }
       );
       //window.console.log('dropdown stuff ', dropDownObjList);
@@ -585,7 +604,7 @@ class FileUpload extends Component {
    * @returns {html} - html ui input elements
    */
    getAccordionInputs() {
-     const { activeAccordionIndexes, ordinalFeatures, ordOrderList, catFeatures } = this.state;
+     const { activeAccordionIndexes, ordinalFeatures, ordKeys, ordOrderList, catFeatures } = this.state;
      let catDropdown = this.getDropDown(this.catDropDownClickHandler);
      let ordDropdown = this.getDropDown(this.ordDropDownClickHandler);
      let ordTextAreaVal;
@@ -732,6 +751,7 @@ class FileUpload extends Component {
                 multiple
                 search
                 options={ordDropdown}
+
               >
               </Dropdown>
              <textarea
@@ -828,19 +848,6 @@ class FileUpload extends Component {
               <p style={{color: 'white'}}>
                 Dependent Column
               </p>
-              {/*}<label>
-                <Dropdown
-                  style={{
-                    backgroundColor: "white",
-                    paddingLeft: "12px"
-                  }}
-                  selection
-                  text="dependent_col"
-                  options={depColDropdown}
-                >
-                </Dropdown>
-                Select the dependent column
-              </label>*/}
               <Dropdown
                 style={{
                   backgroundColor: "white",
@@ -916,6 +923,7 @@ class FileUpload extends Component {
           </Segment>
         </Form>
         {dataPrevTable}
+        <FileUploadForm />
       </div>
     );
   }
