@@ -923,7 +923,11 @@ class FileUpload extends Component {
           </Segment>
         </Form>
         {dataPrevTable}
-        <FileUploadForm />
+        <FileUploadForm
+          depColDropdown={depColDropdown ? depColDropdown : []}
+          depColCallback={this.handleDepColField}
+          depCol={this.state.dependentCol}
+        />
       </div>
     );
   }

@@ -49,7 +49,6 @@ class FileInputField extends Component {
 
     return (
       <div>
-        <SceneHeader header="Upload Datasets"/>
         <Popup
           open={openFileTypePopup}
           header="Please check file type"

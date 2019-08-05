@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import SceneHeader from '../../../SceneHeader';
 import FileInputField from '../FileInputField';
+import DependentColumnInput from '../DependentColumnInput';
 import { Header, Form, Segment } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
@@ -69,7 +70,7 @@ class FileUploadForm extends Component {
         this.setState({
           selectedFile: event.target.files[0],
           errorResp: undefined,
-          datasetPreview: null,
+          
           openFileTypePopup: false,
           dependentCol: '',
           catFeatures: '',
@@ -106,7 +107,12 @@ class FileUploadForm extends Component {
   }
 
   render() {
-    const { propStuff, selectedFile } = this.props;
+    const {
+      depColDropdown,
+      depColCallback,
+      dependentCol,
+      depCol
+    } = this.props;
     const { openFileTypePopup } = this.state;
     return (
       <div>
@@ -117,9 +123,11 @@ class FileUploadForm extends Component {
               selectedFileCallback={this.handleSelectedFile}
               openFileTypePopup={openFileTypePopup}
             />
-            <h1 style={{color: 'purple'}} >
-              depCol
-            </h1>
+            <DependentColumnInput
+              depColDropdown={depColDropdown}
+              depColCallback={depColCallback}
+              depCol={depCol}
+            />
             <h1 style={{color: 'yellow'}} >
               cat features
             </h1>
