@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import SceneHeader from '../../../SceneHeader';
-import { Header, Dropdown, Form } from 'semantic-ui-react';
+import { Header, Dropdown, Form, Popup, Icon } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
 class DependentColumnInput extends Component {
@@ -11,6 +11,10 @@ class DependentColumnInput extends Component {
     this.state = {
     };
 
+    this.depColHelpText = `The column that describes how each row is classified.
+    For example, if analyzing a dataset of patients with different types of diabetes,
+    this column may have the values "type1", "type2", or "none".`;
+
     //this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
   }
 
@@ -19,7 +23,9 @@ class DependentColumnInput extends Component {
     const { depColDropdown, dependentCol, depColCallback } = this.props;
     return (
       <div>
-
+        <p style={{color: 'white'}}>
+          Dependent Column
+        </p>
         <Dropdown
           style={{
             backgroundColor: "white",
@@ -43,6 +49,27 @@ class DependentColumnInput extends Component {
             value={dependentCol ? dependentCol : ""}
             type="text"
             onChange={depColCallback}
+          />
+          <Popup
+            on="click"
+            position="right center"
+            header="Dependent Column Help"
+            content={
+              <div className="content">
+                <p>
+                  {this.depColHelpText}
+                </p>
+              </div>
+            }
+            trigger={
+              <Icon
+                className="file-upload-dependent-help-icon"
+                inverted
+                size="large"
+                color="orange"
+                name="info circle"
+              />
+            }
           />
         </Form.Input>
       </div>
