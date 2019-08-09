@@ -8,6 +8,7 @@ import AccordionFormInput from '../AccordionFormInput';
 import DependentColumnInput from '../DependentColumnInput';
 import CategoricalFeatInput from '../CategoricalFeatInput';
 import OrdinalFeatInput from '../OrdinalFeatInput';
+import DataTablePreview from '../DataTablePreview';
 import { Header, Form, Segment, Popup, Button } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
@@ -23,7 +24,8 @@ class FileUploadForm extends Component {
       datasetPreview: null,
       dependentCol: '',
       catFeatures: '',
-      ordinalFeatures: {}
+      ordinalFeatures: {},
+      showOrdModal: false
     };
 
     this.getDataKeys = this.getDataKeys.bind(this);
@@ -34,7 +36,8 @@ class FileUploadForm extends Component {
     this.handleCatFeatures = this.handleCatFeatures.bind(this);
     this.handleOrdinalFeatures = this.handleOrdinalFeatures.bind(this);
     this.ordDropDownClickHandler = this.ordDropDownClickHandler.bind(this);
-
+    this.ordModalClose = this.ordModalClose.bind(this);
+    this.updateOrdFeatFromModlCallback = this.updateOrdFeatFromModlCallback.bind(this);
   }
 
   componentDidMount() {
@@ -136,14 +139,17 @@ class FileUploadForm extends Component {
     const { datasetPreview, ordinalFeatures } = this.state;
     let selectedKey = d.text;
     let tempOrdKeys = [];
+    let oldOrdFeats = {};
     // if ordinalFeatures is proper json, can get keys
     if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
       tempOrdKeys = Object.keys(ordinalFeatures);
+      oldOrdFeats = ordinalFeatures;
     } else if(ordinalFeatures !== ""){ // else try to parse and get keys
       window.console.log('trying to parse', ordinalFeatures);
       let tempObj;
       try {
           tempObj = JSON.parse(ordinalFeatures);
+          oldOrdFeats = tempObj;
           tempOrdKeys = Object.keys(tempObj)
       } catch (e) {
           window.console.error(' uh o ----> ', e);
@@ -159,7 +165,13 @@ class FileUploadForm extends Component {
       let tempVals = [];
       datasetPreview.data.forEach(row => {
         //tempOrdFeats[ordKey] = row[ordKey];
-        !tempVals.includes(row[ordKey]) ? tempVals.push(row[ordKey]) : null;
+        let oldOrdKeys = Object.keys(oldOrdFeats);
+
+        if(oldOrdKeys.includes(ordKey)) {
+          tempVals = oldOrdFeats[ordKey];
+        } else {
+          !tempVals.includes(row[ordKey]) ? tempVals.push(row[ordKey]) : null;
+        }
       })
       tempOrdFeats[ordKey] = tempVals;
     });
@@ -167,8 +179,24 @@ class FileUploadForm extends Component {
     this.setState({
       ordKeys: tempOrdKeys,
       ordinalFeatures: tempOrdFeats,
-      ordModal: true
+      showOrdModal: true
     });
+  }
+
+  /**
+  * update react ordinal feature state from sortable list in modal
+  */
+  updateOrdFeatFromModlCallback(newOrdFeats) {
+    this.setState({
+      ordinalFeatures: newOrdFeats
+    });
+  }
+
+  /**
+  * use to close popup when select
+  */
+  ordModalClose() {
+    this.setState({ showOrdModal: false });
   }
 
    /**
@@ -422,7 +450,9 @@ class FileUploadForm extends Component {
       dependentCol,
       errorResp,
       catFeatures,
-      ordinalFeatures
+      ordinalFeatures,
+      showOrdModal,
+      datasetPreview
     } = this.state;
 
     let errorContent;
@@ -460,6 +490,10 @@ class FileUploadForm extends Component {
             ordDropdown={ordDropdown}
             ordFeatCallback={this.handleOrdinalFeatures}
             ordTextAreaVal={ordTextAreaVal}
+            ordinalFeatures={ordinalFeatures}
+            showOrdModal={showOrdModal}
+            updateOrdFeatFromModlCallback={this.updateOrdFeatFromModlCallback}
+            ordModalCloseCallback={this.ordModalClose}
           />
         )
     ];
@@ -507,6 +541,9 @@ class FileUploadForm extends Component {
             </div>
           </Segment>
         </Form>
+        <DataTablePreview
+          dataPrev={datasetPreview}
+        />
       </div>
     );
   }

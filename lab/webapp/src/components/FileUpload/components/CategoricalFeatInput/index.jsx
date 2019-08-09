@@ -27,7 +27,7 @@ class CategoricalFeatInput extends Component {
       <div>
         <Dropdown
           style={{
-            width: '100%'
+            width: '65%'
           }}
           text="Select categorical features"
           search
@@ -38,31 +38,16 @@ class CategoricalFeatInput extends Component {
         >
         </Dropdown>
         <textarea
-          className="file-upload-categorical-text-area"
+          style={{
+            width: '65%'
+          }}
           id="categorical_features_text_area_input"
           label="Categorical Features"
           placeholder={"cat_feat_1, cat_feat_2"}
           value={catFeatures ? catFeatures : ""}
           onChange={catFeatCallback}
         />
-        <Popup
-          on="click"
-          position="right center"
-          header="Categorical Features Help"
-          content={
-            <div className="content">
-             {this.catFeatHelpText}
-            </div>
-          }
-          trigger={
-            <Icon
-              inverted
-              size="large"
-              color="orange"
-              name="info circle"
-            />
-          }
-        />
+
       </div>
     );
   }
@@ -74,3 +59,23 @@ const mapStateToProps = (state) => ({
 
 export { CategoricalFeatInput };
 export default connect(mapStateToProps)(CategoricalFeatInput);
+/*
+<Popup
+  on="click"
+  position="right center"
+  header="Categorical Features Help"
+  content={
+    <div className="content">
+     {this.catFeatHelpText}
+    </div>
+  }
+  trigger={
+    <Icon
+      inverted
+      size="large"
+      color="orange"
+      name="info circle"
+    />
+  }
+/>
+*/

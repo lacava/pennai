@@ -37,9 +37,9 @@ class DependentColumnInput extends Component {
         >
         </Dropdown>
         <Form.Input
-          id="dep_column_form_input"
+          id="dep_column_form_input_two"
           style={{
-            width: '65%'
+            width: '70%'
           }}
         >
           <input
@@ -63,7 +63,7 @@ class DependentColumnInput extends Component {
             }
             trigger={
               <Icon
-                className="file-upload-dependent-help-icon"
+                className="file-upload-dependent-help-icon-standalone"
                 inverted
                 size="large"
                 color="orange"

@@ -66,8 +66,18 @@ body {
   top: 7px;
   left: 94%;
 }
+.pennai .file-upload-categorical-help-icon-standalone {
+  position: absolute;
+  top: 64%;
+  left: 92%;
+}
 /* just category text area expanded */
 .pennai .file-upload-ord-with-cat-help-icon {
+  position: absolute;
+  top: 89%;
+  left: 94%;
+}
+.pennai .file-upload-ord-with-cat-help-icon-standalone {
   position: absolute;
   top: 89%;
   left: 94%;
@@ -78,11 +88,20 @@ body {
   top: 52%;
   left: 94%;
 }
+.pennai .file-upload-ord-and-cat-help-icon-standalone {
+  position: absolute;
+  left: 92%;
+}
 /* no text area/accordion expanded */
 .pennai .file-upload-ordinal-help-icon {
   position: absolute;
   top: 61%;
   left: 94%;
+}
+.pennai .file-upload-ordinal-help-icon-standalone {
+  position: absolute;
+  top: 76%;
+  left: 92%;
 }
 /* only ordinal text area/accordion expanded */
 .pennai .file-upload-just-ordinal-help-icon {
@@ -90,10 +109,19 @@ body {
   top: 15%;
   left: 94%;
 }
+.pennai .file-upload-just-ordinal-help-icon-standalone {
+  position: absolute;
+  top: 43%;
+  left: 92%;
+}
 .pennai .file-upload-dependent-help-icon {
   position: relative;
   top: -50px;
   left: 94%;
+}
+.pennai .file-upload-dependent-help-icon-standalone {
+  position: relative;
+  left: 41.5%;
 }
 .pennai .file-upload-file-input-field {
   width: 65%;

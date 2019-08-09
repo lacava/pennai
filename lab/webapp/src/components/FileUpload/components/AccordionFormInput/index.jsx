@@ -13,6 +13,21 @@ class AccordionFormInput extends Component {
     };
 
     this.handleAccordionClick = this.handleAccordionClick.bind(this);
+
+    this.catFeatHelpText = (<p>Categorical features have a discrete number of categories that do not have an intrinsic order.
+    Some examples include sex ("male", "female") or eye color ("brown", "green", "blue"...).
+    <br/><br/>
+    Describe these features using a comma separated list of the field names:
+    <i>sex, eye_color</i></p>);
+
+    this.ordFeatHelpText = (<p>Ordinal features have a discrete number of categories,
+    and the categories have a logical order. Some examples include size ("small",
+    "medium", "large"), or rank results ("first", "second", "third").
+    <br/><br/>
+    Describe these features using a json map. The map key is the name of the field,
+     and the map value is an ordered list of the values the field can take:
+    <i>{"{\"rank\":[\"first\", \"second\", \"third\"], \"size\":[\"small\", \"medium\", \"large\"]}"}</i></p>);
+
   }
 
   /**
@@ -45,13 +60,13 @@ class AccordionFormInput extends Component {
 
     let ordIconClass; // CSS class to position help icon
     // determine which combos of accordions are open and set respective CSS class
-    activeAccordionIndexes.includes(1)
-      ? ordIconClass = "file-upload-ord-with-cat-help-icon"
-      : ordIconClass = "file-upload-ordinal-help-icon";
     activeAccordionIndexes.includes(0)
-      ? ordIconClass = "file-upload-just-ordinal-help-icon" : null;
-    activeAccordionIndexes.includes(1) && activeAccordionIndexes.includes(0)
-      ? ordIconClass = "file-upload-ord-and-cat-help-icon" : null;
+      ? ordIconClass = "file-upload-ord-with-cat-help-icon-standalone"
+      : ordIconClass = "file-upload-ordinal-help-icon-standalone";
+    activeAccordionIndexes.includes(1)
+      ? ordIconClass = "file-upload-just-ordinal-help-icon-standalone" : null;
+    activeAccordionIndexes.includes(0) && activeAccordionIndexes.includes(0)
+      ? ordIconClass = "file-upload-ord-and-cat-help-icon-standalone" : null;
 
     return (
       <div>
@@ -65,6 +80,25 @@ class AccordionFormInput extends Component {
              <Icon name='dropdown' />
              Enter Categorical Features
            </Accordion.Title>
+           <Popup
+             on="click"
+             position="right center"
+             header="Categorical Features Help"
+             content={
+               <div className="content">
+                {this.catFeatHelpText}
+               </div>
+             }
+             trigger={
+               <Icon
+                 className="file-upload-categorical-help-icon-standalone"
+                 inverted
+                 size="large"
+                 color="orange"
+                 name="info circle"
+               />
+             }
+           />
            <Accordion.Content
              active={activeAccordionIndexes.includes(0)}
             >
@@ -79,6 +113,25 @@ class AccordionFormInput extends Component {
               <Icon name='dropdown' />
               Enter Ordinal Features
             </Accordion.Title>
+            <Popup
+              on="click"
+              position="right center"
+              header="Ordinal Features Help"
+              content={
+                <div className="content">
+                 {this.ordFeatHelpText}
+                </div>
+              }
+              trigger={
+                <Icon
+                  inverted
+                  size="large"
+                  color="orange"
+                  name="info circle"
+                  className={ordIconClass}
+                />
+              }
+            />
             <Accordion.Content
               active={activeAccordionIndexes.includes(1)}
              >
