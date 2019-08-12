@@ -34,14 +34,15 @@ class OrdinalFeatInput extends Component {
     Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
       ordModalContent.push( (
           <div key={selectedOrdKey}>
-             select order for: {selectedOrdKey}
+             test drag n' drop list
              <br/>
              select_order_mock: {
                      <Segment>
-                       <h3>test drag n' drop list</h3>
+                       <h3>select order for: {selectedOrdKey}</h3>
                        <SortableList
                          items={
-                           ordinalFeatures[selectedOrdKey] && ordinalFeatures[selectedOrdKey].length
+                           ordinalFeatures[selectedOrdKey]
+                           && Array.isArray(ordinalFeatures[selectedOrdKey])
                              ? ordinalFeatures[selectedOrdKey] : []
                          }
                          onChange={(items_test) => {
@@ -55,7 +56,6 @@ class OrdinalFeatInput extends Component {
                        />
                      </Segment>
                  }
-               )}
           </div>
         )
       )
@@ -72,10 +72,12 @@ class OrdinalFeatInput extends Component {
       ordFeatCallback,
       showOrdModal,
       ordModalCloseCallback,
-      ordinalFeatures
+      ordinalFeatures,
+      dropdwnKeys
     } = this.props;
 
     let ordModalContent = this.makeOrdModalContent();
+    let ordKeys = Object.keys(ordinalFeatures);
     return (
       <div>
           <Dropdown
@@ -84,7 +86,16 @@ class OrdinalFeatInput extends Component {
               width: '65%'
             }}
             text="Select ordinal features"
-            search
+            search={(dropdwnList, userInput) => {
+              //window.console.log('handling ord search', userInput);
+              let tempDropdwnVals = dropdwnList.filter(i => {
+                //window.console.log('mapped value', i);
+                return i.value.toLowerCase().includes(userInput);
+              });
+              //let findInput = tempDropdwnVals.includes(userInput);
+              window.console.log('search user input', tempDropdwnVals);
+              return tempDropdwnVals;
+            }}
             multiple
             options={ordDropdown}
           >
@@ -126,23 +137,3 @@ const mapStateToProps = (state) => ({
 
 export { OrdinalFeatInput };
 export default connect(mapStateToProps)(OrdinalFeatInput);
-/*
-<Popup
-  on="click"
-  position="right center"
-  header="Ordinal Features Help"
-  content={
-    <div className="content">
-     {this.ordFeatHelpText}
-    </div>
-  }
-  trigger={
-    <Icon
-      inverted
-      size="large"
-      color="orange"
-      name="info circle"
-    />
-  }
-/>
-*/

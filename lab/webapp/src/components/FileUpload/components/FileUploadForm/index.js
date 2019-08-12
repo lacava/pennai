@@ -434,7 +434,8 @@ class FileUploadForm extends Component {
              key: key + '_' + i,
              value: key,
              text: key,
-             onClick: dropDownClickHandler
+             onClick: dropDownClickHandler,
+             style: {}
            })
          }
        );
