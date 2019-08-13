@@ -202,8 +202,7 @@ class FileUpload extends Component {
         })
       }
 
-      // keys specified for server to upload repsective fields,
-      // filter
+      // keys specified for server to upload repsective fields
       let metadata =  JSON.stringify({
                 'name': this.state.selectedFile.name,
                 'username': 'testuser',
@@ -214,12 +213,8 @@ class FileUpload extends Component {
               });
 
       data.append('_metadata', metadata);
-
       data.append('_files', this.state.selectedFile);
-      // before upload get a preview of what is in dataset file
 
-      //window.console.log('preview of uploaded data: ', dataPrev);
-      // after uploading a dataset request new list of datasets to update the page
     } else {
       window.console.log('no file available');
     }
@@ -237,7 +232,7 @@ class FileUpload extends Component {
    */
   handleSelectedFile = event => {
 
-    const fileExtList = ['csv', 'tsv'];
+    const fileExtList = ['csv', 'tsv']; // acceptable file extensions
     let papaConfig = {
       header: true,
       preview: 5,
@@ -251,8 +246,6 @@ class FileUpload extends Component {
     if(event.target.files && event.target.files[0]) {
       // immediately try to get dataset preview on file input html element change
       // need to be mindful of garbage data/files
-      //console.log(typeof event.target.files[0]);
-      //console.log(event.target.files[0]);
       let uploadFile = event.target.files[0]
       let fileExt = uploadFile.name.split('.').pop();
 
@@ -366,6 +359,7 @@ class FileUpload extends Component {
     }
 
   }
+
   /**
    * Accordion click handler which updates active index for different text areas
    * in dataset upload form, use react state to keep track of which indicies are
@@ -374,8 +368,7 @@ class FileUpload extends Component {
   handleAccordionClick = (e, titleProps) => {
      const { index } = titleProps;
      const { activeAccordionIndexes } = this.state;
-     // make copy of array in state
-     const newIndex = [...activeAccordionIndexes];
+     const newIndex = [...activeAccordionIndexes];  // make copy of array in state
      const currentIndexPosition = activeAccordionIndexes.indexOf(index);
 
      if (currentIndexPosition > -1) {
@@ -433,7 +426,7 @@ class FileUpload extends Component {
   }
 
   /**
-  * take selected key and generate comma separated list of values for given key
+  * take selected key and generate ordered list of values for given key
   */
   ordDropDownClickHandler(e, d) {
     const { datasetPreview, ordKeys, ordinalFeatures } = this.state;
@@ -709,7 +702,6 @@ class FileUpload extends Component {
                value={this.state.catFeatures ? this.state.catFeatures : ""}
                onChange={this.handleCatFeatures}
              />
-
            </Accordion.Content>
            <Accordion.Title
              className="file-upload-ordinal-accord-title"
@@ -751,7 +743,6 @@ class FileUpload extends Component {
                 multiple
                 search
                 options={ordDropdown}
-
               >
               </Dropdown>
              <textarea
@@ -765,7 +756,6 @@ class FileUpload extends Component {
            </Accordion.Content>
          </Accordion>
          <Modal
-
             size="small"
             open={this.state.ordModal}
             style={{ marginTop:"0px" }}
@@ -787,9 +777,7 @@ class FileUpload extends Component {
    }
 
   render() {
-
     //const { dataset } = this.props;
-
     let errorMsg = this.state.errorResp;
     let errorContent;
     let dataPrevTable = this.getDataTablePreview();
@@ -923,11 +911,7 @@ class FileUpload extends Component {
           </Segment>
         </Form>
         {dataPrevTable}
-        <FileUploadForm
-          depColDropdown={depColDropdown ? depColDropdown : []}
-          depColCallback={this.handleDepColField}
-          depCol={this.state.dependentCol}
-        />
+        <FileUploadForm />
       </div>
     );
   }
