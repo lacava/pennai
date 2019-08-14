@@ -25,7 +25,8 @@ class FileUploadForm extends Component {
       dependentCol: '',
       catFeatures: '',
       ordinalFeatures: {},
-      showOrdModal: false
+      showOrdModal: false,
+      currentSelection: []
     };
 
     this.getDataKeys = this.getDataKeys.bind(this);
@@ -82,24 +83,26 @@ class FileUploadForm extends Component {
    * @returns {void} - no return value
    */
   handleCatFeatures(e) {
+    const {currentSelection} = this.state;
+    let tempSelection = [...currentSelection];
+    tempSelection.push(e.target.value);
     //let safeInput = this.purgeUserInput(e.target.value);
-    //window.console.log('safe input cat: ', safeInput);
+    window.console.log('tempSelection: ', tempSelection);
     this.setState({
       catFeatures: e.target.value,
+      currentSelection: tempSelection,
       errorResp: undefined
     });
   }
 
-  /**
+  /** NO LONGER IN USE
    * Text field for entering dependent column, sets component react state with
-   * user input
+   * user input -
    * @param {Event} e - DOM Event from user interacting with UI text field
    * @param {Object} props - react props object
    * @returns {void} - no return value
    */
   handleDepColField(e) {
-    //let safeInput = this.purgeUserInput(props.value);
-    //window.console.log('safe input: ', safeInput);
     this.setState({
       dependentCol: e.target.value,
       errorResp: undefined
@@ -110,6 +113,7 @@ class FileUploadForm extends Component {
   * simple click handler for selecting dependent column
   */
   depColDropDownClickHandler(e, d) {
+    window.console.log('depColDropDownClickHandler: ', d);
     this.setState({
       dependentCol: d.text
     });
@@ -123,7 +127,7 @@ class FileUploadForm extends Component {
    * @returns {void} - no return value
    */
   handleOrdinalFeatures(e) {
-    //window.console.log('ord props: ', props);
+    window.console.log('handleOrdinalFeatures: ', e.target.value);
     //let safeInput = this.purgeUserInput(props.value);
     //window.console.log('safe input ord: ', safeInput);
     this.setState({
@@ -143,6 +147,8 @@ class FileUploadForm extends Component {
     // if ordinalFeatures is proper json, can get keys
     if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
       tempOrdKeys = Object.keys(ordinalFeatures);
+      // keep track of previously selected ordinal keys - will either add or remove
+      // current user selection
       oldOrdFeats = ordinalFeatures;
     } else if(ordinalFeatures !== ""){ // else try to parse and get keys
       window.console.log('trying to parse', ordinalFeatures);
@@ -170,7 +176,7 @@ class FileUploadForm extends Component {
         if(oldOrdKeys.includes(ordKey)) {
           tempVals = oldOrdFeats[ordKey];
         } else {
-          !tempVals.includes(row[ordKey]) ? tempVals.push(row[ordKey]) : null;
+          !tempVals.includes(row[ordKey]) && row[ordKey] ? tempVals.push(row[ordKey]) : null;
         }
       })
       tempOrdFeats[ordKey] = tempVals;
@@ -203,13 +209,12 @@ class FileUploadForm extends Component {
    * Callback for handling selected file, pass to child component
    */
    handleSelectedFile = event => {
-     window.console.log('got file', event.target.files);
+     //window.console.log('got file', event.target.files);
      const fileExtList = ['csv', 'tsv'];
      let papaConfig = {
        header: true,
-       preview: 5,
        complete: (result) => {
-         //window.console.log('preview of uploaded data: ', result);
+         window.console.log('preview of uploaded data: ', result);
          this.setState({datasetPreview: result});
        }
      };

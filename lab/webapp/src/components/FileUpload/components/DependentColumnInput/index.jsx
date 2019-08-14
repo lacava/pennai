@@ -21,35 +21,39 @@ class DependentColumnInput extends Component {
 // TODO - fix dropdown values
   render() {
     const { depColDropdown, dependentCol, depColCallback } = this.props;
+    window.console.log('dependentCol', dependentCol);
     return (
       <div>
         <p style={{color: 'white'}}>
           Dependent Column
         </p>
-        <Dropdown
-          style={{
-            backgroundColor: "white",
-            paddingLeft: "12px"
-          }}
-          selection
-          text="Select dependent column"
-          options={depColDropdown}
-        >
-        </Dropdown>
+
+
         <Form.Input
           id="dep_column_form_input_two"
           style={{
             width: '70%'
           }}
         >
-          <input
+          <Dropdown
+            style={{
+              backgroundColor: "white",
+              paddingLeft: "12px"
+            }}
+            text={dependentCol ? dependentCol : "Select dependent column"}
+            selection
+            search
+            options={depColDropdown}
+          >
+          </Dropdown>
+          {/*<input
             id="dependent_column_text_field_input"
             className="file-upload-dependent-text-field"
             placeholder="Or enter dataset dependent column manually"
             value={dependentCol ? dependentCol : ""}
             type="text"
             onChange={depColCallback}
-          />
+          />*/}
           <Popup
             on="click"
             position="right center"
