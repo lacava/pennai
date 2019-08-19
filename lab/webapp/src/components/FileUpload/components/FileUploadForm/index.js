@@ -62,7 +62,9 @@ class FileUploadForm extends Component {
   * take selected key and generate comma separated list of values for given key
   */
   catDropDownClickHandler(e, d) {
-    const { datasetPreview, catFeatures } = this.state;
+    const { currentSelection, catFeatures } = this.state;
+    let tempSelection = [...currentSelection];
+    let tempKeys = this.getDataKeys();
     let selectedKey = d.text;
     let tempList;
     // if categorical features is not empty, try to split on comma
@@ -71,8 +73,16 @@ class FileUploadForm extends Component {
     let catIndex = tempList.indexOf(selectedKey);
     // if category already in list, remove it, else add it
     catIndex > -1 ? tempList.splice(catIndex, 1) : tempList.push(selectedKey);
+
+    let catFeatIndex = tempSelection.indexOf(d.text);
+    catFeatIndex > -1
+      ? tempSelection.splice(catFeatIndex, 1)
+      : tempSelection.push(d.text);
+    window.console.log('tempSelection: ', tempSelection);
+
     this.setState({
-      catFeatures: tempList.join()
+      catFeatures: tempList.join(),
+      currentSelection: tempSelection
     });
   }
 
@@ -85,9 +95,27 @@ class FileUploadForm extends Component {
   handleCatFeatures(e) {
     const {currentSelection} = this.state;
     let tempSelection = [...currentSelection];
-    tempSelection.push(e.target.value);
+    let tempKeys = this.getDataKeys();
     //let safeInput = this.purgeUserInput(e.target.value);
-    window.console.log('tempSelection: ', tempSelection);
+
+    // try to split input on commas
+    let userInput = e.target.value;
+    let splitInput = userInput.split(',');
+
+    // not sure how to tell if adding or removing entry from text field, with
+    // dropdown, user input will always be a column key, with text input if user
+    // clearing out key no way to tell which old entry to remove - managing each
+    // field separately so this can be tricky 
+    splitInput && splitInput.forEach(catEntry => {
+      // check each input to see if in general currentSelection pool
+      if(tempKeys.includes(catEntry)){
+        let catFeatIndex = tempSelection.indexOf(catEntry);
+        catFeatIndex > -1
+          ? tempSelection.splice(catFeatIndex, 1)
+          : tempSelection.push(catEntry);
+      }
+    })
+
     this.setState({
       catFeatures: e.target.value,
       currentSelection: tempSelection,
@@ -113,7 +141,23 @@ class FileUploadForm extends Component {
   * simple click handler for selecting dependent column
   */
   depColDropDownClickHandler(e, d) {
-    window.console.log('depColDropDownClickHandler: ', d);
+    const {currentSelection} = this.state;
+    let tempSelection = [...currentSelection];
+    let tempKeys = this.getDataKeys();
+    // if valid key (input is a column key)
+    if(tempKeys.includes(d.text)){
+      // check if already selected in component state - currentSelection
+      let depColIndex = tempSelection.indexOf(d.text);
+      depColIndex > -1
+        ? tempSelection.splice(depColIndex, 1)
+        : tempSelection.push(d.text);
+      this.setState({
+        currentSelection: tempSelection
+      });
+    }
+
+    // window.console.log('tempSelection: ', tempSelection);
+    // window.console.log('currentSelection: ', currentSelection);
     this.setState({
       dependentCol: d.text
     });

@@ -34,28 +34,26 @@ class OrdinalFeatInput extends Component {
     Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
       ordModalContent.push( (
           <div key={selectedOrdKey}>
-             test drag n' drop list
-             <br/>
-             select_order_mock: {
-                     <Segment>
-                       <h3>select order for: {selectedOrdKey}</h3>
-                       <SortableList
-                         items={
-                           ordinalFeatures[selectedOrdKey]
-                           && Array.isArray(ordinalFeatures[selectedOrdKey])
-                             ? ordinalFeatures[selectedOrdKey] : []
-                         }
-                         onChange={(items_test) => {
-                           let tempOrdState = {...ordinalFeatures};
-                           tempOrdState[selectedOrdKey] = items_test;
-                           window.console.log('new order', tempOrdState);
-                           this.setState({ordinalFeatures: tempOrdState})
-                           //this.setState({items_test});
-                           updateOrdFeatFromModlCallback(tempOrdState)
-                         }}
-                       />
-                     </Segment>
+            <h3>Select order for: {selectedOrdKey}</h3>
+            <br/>
+             {<Segment>
+               <p>{selectedOrdKey}</p>
+               <SortableList
+                 items={
+                   ordinalFeatures[selectedOrdKey]
+                   && Array.isArray(ordinalFeatures[selectedOrdKey])
+                     ? ordinalFeatures[selectedOrdKey] : []
                  }
+                 onChange={(items_test) => {
+                   let tempOrdState = {...ordinalFeatures};
+                   tempOrdState[selectedOrdKey] = items_test;
+                   window.console.log('new order', tempOrdState);
+                   this.setState({ordinalFeatures: tempOrdState})
+                   //this.setState({items_test});
+                   updateOrdFeatFromModlCallback(tempOrdState)
+                 }}
+               />
+             </Segment>}
           </div>
         )
       )
@@ -118,10 +116,10 @@ class OrdinalFeatInput extends Component {
              onClose={ordModalCloseCallback}
           >
             <Modal.Header>
-             Test modal
+             Ordinal Feature Order
+             <h3>Drag and Drop - arrange list items in desired order</h3>
             </Modal.Header>
-            <Modal.Content>
-             <h3>minmodal</h3>
+            <Modal.Content>     
              {ordModalContent}
              {JSON.stringify(ordinalFeatures, null, 2)}
             </Modal.Content>

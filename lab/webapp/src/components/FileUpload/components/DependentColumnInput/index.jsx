@@ -18,10 +18,9 @@ class DependentColumnInput extends Component {
     //this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
   }
 
-// TODO - fix dropdown values
   render() {
     const { depColDropdown, dependentCol, depColCallback } = this.props;
-    window.console.log('dependentCol', dependentCol);
+    //window.console.log('dependentCol', dependentCol);
     return (
       <div>
         <p style={{color: 'white'}}>
