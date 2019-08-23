@@ -62,26 +62,49 @@ class FileUploadForm extends Component {
   * take selected key and generate comma separated list of values for given key
   */
   catDropDownClickHandler(e, d) {
-    const { currentSelection, catFeatures } = this.state;
+    const { currentSelection, catFeatures, dependentCol, ordinalFeatures } = this.state;
     let tempSelection = [...currentSelection];
     let tempKeys = this.getDataKeys();
     let selectedKey = d.text;
-    let tempList;
+    let catFeatList;
+    let ordKeysList = [];
     // if categorical features is not empty, try to split on comma
-    catFeatures !== '' ? tempList = catFeatures.split(',') : tempList = [];
+    catFeatures !== '' ? catFeatList = catFeatures.split(',') : catFeatList = [];
     // keep track of if currently selected category is already in list
-    let catIndex = tempList.indexOf(selectedKey);
+    let catIndex = catFeatList.indexOf(selectedKey);
     // if category already in list, remove it, else add it
-    catIndex > -1 ? tempList.splice(catIndex, 1) : tempList.push(selectedKey);
+    catIndex > -1 ? catFeatList.splice(catIndex, 1) : catFeatList.push(selectedKey);
 
-    let catFeatIndex = tempSelection.indexOf(d.text);
-    catFeatIndex > -1
-      ? tempSelection.splice(catFeatIndex, 1)
-      : tempSelection.push(d.text);
-    window.console.log('tempSelection: ', tempSelection);
+    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
+      ordKeysList = Object.keys(ordinalFeatures);
+    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
+      let tempObj;
+      try {
+          tempObj = JSON.parse(ordinalFeatures);
+          ordKeysList = Object.keys(tempObj);
+      } catch (e) {
+          window.console.error(' uh o ----> ', e);
+          //return false;
+      }
+    }
+
+    let inDepCol = catFeatList.includes(dependentCol);
+    let inOrdinalFeatures = ordKeysList.includes(selectedKey);
+    let catFeatIndex = tempSelection.indexOf(selectedKey);
+
+    if(catFeatIndex === -1 && !inDepCol && !inOrdinalFeatures) {
+      tempSelection.push(selectedKey)
+    } else if (inDepCol || inOrdinalFeatures) {
+      let depColIndex = catFeatList.indexOf(selectedKey);
+      depColIndex > -1 ? catFeatList.splice(depColIndex, 1) : null;
+      let ordFeatIndex = catFeatList.indexOf(selectedKey);
+      ordFeatIndex > -1 ? catFeatList.splice(ordFeatIndex, 1) : null;
+    }
+
+    window.console.log('currentSelection: ', tempSelection);
 
     this.setState({
-      catFeatures: tempList.join(),
+      catFeatures: catFeatList.join(),
       currentSelection: tempSelection
     });
   }
@@ -93,32 +116,65 @@ class FileUploadForm extends Component {
    * @returns {void} - no return value
    */
   handleCatFeatures(e) {
-    const {currentSelection} = this.state;
+    const {currentSelection, dependentCol, catFeatures, ordinalFeatures} = this.state;
     let tempSelection = [...currentSelection];
     let tempKeys = this.getDataKeys();
-    //let safeInput = this.purgeUserInput(e.target.value);
+    let catFeatList;
+    let ordKeysList = [];
+    let selectedKey = e.target.value;
+    let newCatFeatList = [];
+    let newSelection = [];
+    // if categorical features is not empty, try to split on comma
+    catFeatures !== '' ? catFeatList = catFeatures.split(',') : catFeatList = [];
 
+    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
+      ordKeysList = Object.keys(ordinalFeatures);
+    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
+      let tempObj;
+      try {
+          tempObj = JSON.parse(ordinalFeatures);
+          ordKeysList = Object.keys(tempObj);
+      } catch (e) {
+          window.console.error(' uh o ----> ', e);
+          //return false;
+      }
+    }
     // try to split input on commas
     let userInput = e.target.value;
     let splitInput = userInput.split(',');
 
-    // not sure how to tell if adding or removing entry from text field, with
-    // dropdown, user input will always be a column key, with text input if user
-    // clearing out key no way to tell which old entry to remove - managing each
-    // field separately so this can be tricky 
+    let inDepCol = splitInput.includes(dependentCol);
+
     splitInput && splitInput.forEach(catEntry => {
-      // check each input to see if in general currentSelection pool
-      if(tempKeys.includes(catEntry)){
+      let properCatKey = false;
+      tempKeys.map(tempK => {
+        catEntry === tempK ? properCatKey = true : null;
+      });
+      window.console.log('properCatKey', properCatKey);
+      if((catEntry !== "") && properCatKey) {
+        newCatFeatList.push(catEntry);
+        let tempCatIndex = tempSelection.indexOf(catEntry);
+        let inOrdinalFeatures = ordKeysList.includes(catEntry);
         let catFeatIndex = tempSelection.indexOf(catEntry);
-        catFeatIndex > -1
-          ? tempSelection.splice(catFeatIndex, 1)
-          : tempSelection.push(catEntry);
+        //window.console.log('inDepCol', inDepCol);
+        if (tempCatIndex === -1 && !inDepCol && !inOrdinalFeatures) {
+          tempSelection.push(catEntry);
+        } else if (inDepCol || inOrdinalFeatures) {
+          let depColIndex = catFeatList.indexOf(dependentCol);
+          depColIndex > -1 ? catFeatList.splice(depColIndex, 1) : null;
+          let ordFeatIndex = catFeatList.indexOf(catEntry);
+          ordFeatIndex > -1 ? catFeatList.splice(ordFeatIndex, 1) : null;
+        }
       }
     })
+    newSelection = newCatFeatList.concat(dependentCol);
+    newSelection = newSelection.concat(ordKeysList);
 
+    window.console.log('newSelection: ', newSelection);
+    //window.console.log('currentSelection: ', tempSelection);
     this.setState({
-      catFeatures: e.target.value,
-      currentSelection: tempSelection,
+      catFeatures: newCatFeatList.join(),
+      currentSelection: newSelection,
       errorResp: undefined
     });
   }
@@ -141,26 +197,76 @@ class FileUploadForm extends Component {
   * simple click handler for selecting dependent column
   */
   depColDropDownClickHandler(e, d) {
-    const {currentSelection} = this.state;
+    const {currentSelection, catFeatures, ordinalFeatures, dependentCol} = this.state;
     let tempSelection = [...currentSelection];
     let tempKeys = this.getDataKeys();
+    let catFeatList;
+    let ordKeysList = [];
+    let userInput = d.text;
     // if valid key (input is a column key)
-    if(tempKeys.includes(d.text)){
+    if(tempKeys.includes(userInput)){
+      // check other keys to see if already used for other options
+
       // check if already selected in component state - currentSelection
       let depColIndex = tempSelection.indexOf(d.text);
-      depColIndex > -1
-        ? tempSelection.splice(depColIndex, 1)
-        : tempSelection.push(d.text);
+      // if old dependent column in currentSelection, remove it immediately
+      let oldDepColIndex = tempSelection.indexOf(dependentCol);
+      oldDepColIndex > -1 ? tempSelection.splice(oldDepColIndex, 1) : null;
+
+      catFeatures !== '' ? catFeatList = catFeatures.split(',') : catFeatList = [];
+      // if ordinalFeatures is proper json, can get keys
+      if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
+        ordKeysList = Object.keys(ordinalFeatures);
+      } else if(ordinalFeatures !== ""){ // else try to parse and get keys
+        let tempObj;
+        try {
+            tempObj = JSON.parse(ordinalFeatures);
+            ordKeysList = Object.keys(tempObj);
+        } catch (e) {
+            window.console.error(' uh o ----> ', e);
+            //return false;
+        }
+      }
+      let inCatList = catFeatList.includes(d.text);
+      let inOrdList = ordKeysList.includes(d.text);
+      // window.console.log('inCatList', inCatList);
+      // window.console.log('inOrdList', inOrdList);
+      // window.console.log('depColIndex', depColIndex);
+
+      // if new option is being selected, add it to currentSelection
+      if(depColIndex === -1 && !inCatList && !inOrdList) {
+        tempSelection.push(d.text);
+      } else if (depColIndex > -1 && !inCatList && !inOrdList) {
+        // if new option being selected is already in currentSelection but not
+        // in category/ordinal features, remove new option from currentSelection
+        tempSelection.splice(depColIndex, 1);
+        userInput = '';
+      }
+
+      if(!inCatList && !inOrdList && !tempSelection.includes(d.text) && depColIndex === -1) {
+        tempSelection.push(d.text);
+      } else if(inCatList || inOrdList) {
+        userInput = '';
+      }
+      // check for categorical feature options
+      // !inCatList
+      // && !inOrdList
+      // && !tempSelection.includes(d.text)
+      // && depColIndex === -1
+      //   ? tempSelection.push(d.text) : null;
+
+      window.console.log('currentSelection: ', tempSelection);
       this.setState({
         currentSelection: tempSelection
       });
     }
 
     // window.console.log('tempSelection: ', tempSelection);
-    // window.console.log('currentSelection: ', currentSelection);
+    //window.console.log('currentSelection: ', tempSelection);
     this.setState({
-      dependentCol: d.text
+      dependentCol: userInput
     });
+
   }
 
   /**
