@@ -9,7 +9,7 @@ const SortableList = ({ items, onChange }) => {
         const order = sortable.toArray();
         onChange(order.reverse());
     };
-    const listItems = items.map((val, i) => (<li key={uniqueId()} data-id={val}>List Item: {val}</li>));
+    const listItems = items.map((val, i) => (<li key={uniqueId()} data-id={val}>{val}</li>));
 
     return (
         <div>
