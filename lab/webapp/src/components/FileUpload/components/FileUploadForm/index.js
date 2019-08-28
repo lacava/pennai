@@ -32,6 +32,7 @@ class FileUploadForm extends Component {
     this.getDataKeys = this.getDataKeys.bind(this);
     this.handleSelectedFile = this.handleSelectedFile.bind(this);
     this.handleDepColField = this.handleDepColField.bind(this);
+    this.handleCatColDropDwn = this.handleCatColDropDwn.bind(this);
     this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
     this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
     this.handleCatFeatures = this.handleCatFeatures.bind(this);
@@ -117,6 +118,7 @@ class FileUploadForm extends Component {
    */
   handleCatFeatures(e) {
     const {currentSelection, dependentCol, catFeatures, ordinalFeatures} = this.state;
+    window.console.error('cat handler ', e.target.innerText);
     let tempSelection = [...currentSelection];
     let tempKeys = this.getDataKeys();
     let catFeatList;
@@ -141,42 +143,49 @@ class FileUploadForm extends Component {
     }
     // try to split input on commas
     let userInput = e.target.value;
-    let splitInput = userInput.split(',');
+    if(userInput){
+      let splitInput = userInput.split(',');
 
-    let inDepCol = splitInput.includes(dependentCol);
+      let inDepCol = splitInput.includes(dependentCol);
 
-    splitInput && splitInput.forEach(catEntry => {
-      let properCatKey = false;
-      tempKeys.map(tempK => {
-        catEntry === tempK ? properCatKey = true : null;
-      });
-      window.console.log('properCatKey', properCatKey);
-      if((catEntry !== "") && properCatKey) {
-        newCatFeatList.push(catEntry);
-        let tempCatIndex = tempSelection.indexOf(catEntry);
-        let inOrdinalFeatures = ordKeysList.includes(catEntry);
-        let catFeatIndex = tempSelection.indexOf(catEntry);
-        //window.console.log('inDepCol', inDepCol);
-        if (tempCatIndex === -1 && !inDepCol && !inOrdinalFeatures) {
-          tempSelection.push(catEntry);
-        } else if (inDepCol || inOrdinalFeatures) {
-          let depColIndex = catFeatList.indexOf(dependentCol);
-          depColIndex > -1 ? catFeatList.splice(depColIndex, 1) : null;
-          let ordFeatIndex = catFeatList.indexOf(catEntry);
-          ordFeatIndex > -1 ? catFeatList.splice(ordFeatIndex, 1) : null;
+      splitInput && splitInput.forEach(catEntry => {
+        let properCatKey = false;
+        tempKeys.map(tempK => {
+          catEntry === tempK ? properCatKey = true : null;
+        });
+        window.console.log('properCatKey', properCatKey);
+        if((catEntry !== "") && properCatKey) {
+          newCatFeatList.push(catEntry);
+          let tempCatIndex = tempSelection.indexOf(catEntry);
+          let inOrdinalFeatures = ordKeysList.includes(catEntry);
+          let catFeatIndex = tempSelection.indexOf(catEntry);
+          //window.console.log('inDepCol', inDepCol);
+          if (tempCatIndex === -1 && !inDepCol && !inOrdinalFeatures) {
+            tempSelection.push(catEntry);
+          } else if (inDepCol || inOrdinalFeatures) {
+            let depColIndex = catFeatList.indexOf(dependentCol);
+            depColIndex > -1 ? catFeatList.splice(depColIndex, 1) : null;
+            let ordFeatIndex = catFeatList.indexOf(catEntry);
+            ordFeatIndex > -1 ? catFeatList.splice(ordFeatIndex, 1) : null;
+          }
         }
-      }
-    })
-    newSelection = newCatFeatList.concat(dependentCol);
-    newSelection = newSelection.concat(ordKeysList);
+      })
+      newSelection = newCatFeatList.concat(dependentCol);
+      newSelection = newSelection.concat(ordKeysList);
 
-    window.console.log('newSelection: ', newSelection);
+      window.console.log('newSelection: ', newSelection);
+    }
+
     //window.console.log('currentSelection: ', tempSelection);
     this.setState({
       catFeatures: newCatFeatList.join(),
       currentSelection: newSelection,
       errorResp: undefined
     });
+  }
+
+  handleCatColDropDwn(e) {
+    window.console.error('cat handler ', e.target.innerText);
   }
 
   /** NO LONGER IN USE
@@ -586,11 +595,9 @@ class FileUploadForm extends Component {
        let dropDownObjList = [];
        tempKeys.forEach((key, i) =>{
            dropDownObjList.push({
-             key: key + '_' + i,
+             key: key,
              value: key,
-             text: key,
-             onClick: dropDownClickHandler,
-             style: {}
+             text: key
            })
          }
        );
@@ -639,6 +646,7 @@ class FileUploadForm extends Component {
             catDropdown={catDropdown}
             catFeatCallback={this.handleCatFeatures}
             catFeatures={catFeatures}
+            dropDwnCallback={this.handleCatColDropDwn}
           />
         ),
         (

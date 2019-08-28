@@ -1,6 +1,7 @@
 import React from 'react';
 import Sortable from 'react-sortablejs';
 import uniqueId from 'lodash/uniqueId';
+import PropTypes from 'prop-types';
 
 // Functional Component - https://github.com/SortableJS/react-sortablejs
 const SortableList = ({ items, onChange }) => {
@@ -48,8 +49,8 @@ const SortableList = ({ items, onChange }) => {
 };
 
 SortableList.propTypes = {
-    items: React.PropTypes.array,
-    onChange: React.PropTypes.func
+    items: PropTypes.array,
+    onChange: PropTypes.func
 };
 
 export default SortableList;
