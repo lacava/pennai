@@ -14,6 +14,7 @@ class OrdinalFeatInput extends Component {
     };
 
     this.makeOrdModalContent = this.makeOrdModalContent.bind(this);
+    this.dropDwnHandler = this.dropDwnHandler.bind(this);
 
     this.ordFeatHelpText = (<p>Ordinal features have a discrete number of categories,
     and the categories have a logical order. Some examples include size ("small",
@@ -26,9 +27,13 @@ class OrdinalFeatInput extends Component {
     //this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
   }
 
+  dropDwnHandler(e, d) {
+    window.console.log('ord drop down handler', e.target.innerText);
+    window.console.log('ord drop down handler', d);
+  }
+
   makeOrdModalContent() {
     const { ordinalFeatures, updateOrdFeatFromModlCallback } = this.props;
-
     let ordModalContent = [];
 
     Object.keys(ordinalFeatures).forEach(selectedOrdKey => {
@@ -66,8 +71,6 @@ class OrdinalFeatInput extends Component {
   render() {
     const {
       ordDropdown,
-      ordTextAreaVal,
-      ordFeatCallback,
       showOrdModal,
       ordModalCloseCallback,
       ordinalFeatures,
@@ -96,19 +99,9 @@ class OrdinalFeatInput extends Component {
             }}
             multiple
             options={ordDropdown}
+            onChange={this.dropDwnHandler}
           >
           </Dropdown>
-          <textarea
-            style={{
-              width: '65%'
-            }}
-            id="ordinal_features_text_area_input"
-            label="Ordinal Features"
-            value={ordTextAreaVal}
-            placeholder={"{\"ord_feat_1\": [\"SHORT\", \"TALL\"], \"ord_feat_2\": [\"FIRST\", \"SECOND\", \"THIRD\"]}"}
-            onChange={ordFeatCallback}
-          />
-
           <Modal
              size="small"
              open={showOrdModal}
@@ -119,7 +112,7 @@ class OrdinalFeatInput extends Component {
              Ordinal Feature Order
              <h3>Drag and Drop - arrange list items in desired order</h3>
             </Modal.Header>
-            <Modal.Content>     
+            <Modal.Content>
              {ordModalContent}
              {JSON.stringify(ordinalFeatures, null, 2)}
             </Modal.Content>

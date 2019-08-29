@@ -11,16 +11,20 @@ class CategoricalFeatInput extends Component {
     this.state = {
     };
 
+    this.dropDwnHandler = this.dropDwnHandler.bind(this);
+
     this.catFeatHelpText = (<p>Categorical features have a discrete number of categories that do not have an intrinsic order.
     Some examples include sex ("male", "female") or eye color ("brown", "green", "blue"...).
     <br/><br/>
     Describe these features using a comma separated list of the field names:
     <i>sex, eye_color</i></p>);
-
-    //this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
   }
 
-// className="file-upload-categorical-help-icon"
+  dropDwnHandler(e, d) {
+    window.console.log('cat drop down handler', e.target.innerText);
+    window.console.log('cat drop down handler', d.value);
+  }
+
   render() {
     const { catDropdown, catFeatures, catFeatCallback } = this.props;
     return (
@@ -33,49 +37,17 @@ class CategoricalFeatInput extends Component {
           search
           selection
           multiple
-          value={catFeatures.split(',')}
           options={catDropdown}
+          onClose={catFeatCallback}
+          onChange={catFeatCallback}
         >
         </Dropdown>
-        <textarea
-          style={{
-            width: '65%'
-          }}
-          id="categorical_features_text_area_input"
-          label="Categorical Features"
-          placeholder={"cat_feat_1, cat_feat_2"}
-          value={catFeatures ? catFeatures : ""}
-          onChange={catFeatCallback}
-        />
-
       </div>
     );
   }
 }
 
-const mapStateToProps = (state) => ({
-
-});
+const mapStateToProps = (state) => ({});
 
 export { CategoricalFeatInput };
 export default connect(mapStateToProps)(CategoricalFeatInput);
-/*
-<Popup
-  on="click"
-  position="right center"
-  header="Categorical Features Help"
-  content={
-    <div className="content">
-     {this.catFeatHelpText}
-    </div>
-  }
-  trigger={
-    <Icon
-      inverted
-      size="large"
-      color="orange"
-      name="info circle"
-    />
-  }
-/>
-*/

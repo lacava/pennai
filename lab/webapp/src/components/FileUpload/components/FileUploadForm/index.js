@@ -31,11 +31,8 @@ class FileUploadForm extends Component {
 
     this.getDataKeys = this.getDataKeys.bind(this);
     this.handleSelectedFile = this.handleSelectedFile.bind(this);
-    this.handleDepColField = this.handleDepColField.bind(this);
     this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
     this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
-    this.handleCatFeatures = this.handleCatFeatures.bind(this);
-    this.handleOrdinalFeatures = this.handleOrdinalFeatures.bind(this);
     this.ordDropDownClickHandler = this.ordDropDownClickHandler.bind(this);
     this.ordModalClose = this.ordModalClose.bind(this);
     this.updateOrdFeatFromModlCallback = this.updateOrdFeatFromModlCallback.bind(this);
@@ -63,9 +60,11 @@ class FileUploadForm extends Component {
   */
   catDropDownClickHandler(e, d) {
     const { currentSelection, catFeatures, dependentCol, ordinalFeatures } = this.state;
+    window.console.log('catDropDownClickHandler');
     let tempSelection = [...currentSelection];
     let tempKeys = this.getDataKeys();
-    let selectedKey = d.text;
+    //let selectedKey = d.text;
+    let selectedKey = e.target.innerText;
     let catFeatList;
     let ordKeysList = [];
     // if categorical features is not empty, try to split on comma
@@ -110,90 +109,6 @@ class FileUploadForm extends Component {
   }
 
   /**
-   * text field/area for entering categorical features
-   * user input
-   * @param {Event} e - DOM Event from user interacting with UI text field
-   * @returns {void} - no return value
-   */
-  handleCatFeatures(e) {
-    const {currentSelection, dependentCol, catFeatures, ordinalFeatures} = this.state;
-    let tempSelection = [...currentSelection];
-    let tempKeys = this.getDataKeys();
-    let catFeatList;
-    let ordKeysList = [];
-    let selectedKey = e.target.value;
-    let newCatFeatList = [];
-    let newSelection = [];
-    // if categorical features is not empty, try to split on comma
-    catFeatures !== '' ? catFeatList = catFeatures.split(',') : catFeatList = [];
-
-    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
-      ordKeysList = Object.keys(ordinalFeatures);
-    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
-      let tempObj;
-      try {
-          tempObj = JSON.parse(ordinalFeatures);
-          ordKeysList = Object.keys(tempObj);
-      } catch (e) {
-          window.console.error(' uh o ----> ', e);
-          //return false;
-      }
-    }
-    // try to split input on commas
-    let userInput = e.target.value;
-    let splitInput = userInput.split(',');
-
-    let inDepCol = splitInput.includes(dependentCol);
-
-    splitInput && splitInput.forEach(catEntry => {
-      let properCatKey = false;
-      tempKeys.map(tempK => {
-        catEntry === tempK ? properCatKey = true : null;
-      });
-      window.console.log('properCatKey', properCatKey);
-      if((catEntry !== "") && properCatKey) {
-        newCatFeatList.push(catEntry);
-        let tempCatIndex = tempSelection.indexOf(catEntry);
-        let inOrdinalFeatures = ordKeysList.includes(catEntry);
-        let catFeatIndex = tempSelection.indexOf(catEntry);
-        //window.console.log('inDepCol', inDepCol);
-        if (tempCatIndex === -1 && !inDepCol && !inOrdinalFeatures) {
-          tempSelection.push(catEntry);
-        } else if (inDepCol || inOrdinalFeatures) {
-          let depColIndex = catFeatList.indexOf(dependentCol);
-          depColIndex > -1 ? catFeatList.splice(depColIndex, 1) : null;
-          let ordFeatIndex = catFeatList.indexOf(catEntry);
-          ordFeatIndex > -1 ? catFeatList.splice(ordFeatIndex, 1) : null;
-        }
-      }
-    })
-    newSelection = newCatFeatList.concat(dependentCol);
-    newSelection = newSelection.concat(ordKeysList);
-
-    window.console.log('newSelection: ', newSelection);
-    //window.console.log('currentSelection: ', tempSelection);
-    this.setState({
-      catFeatures: newCatFeatList.join(),
-      currentSelection: newSelection,
-      errorResp: undefined
-    });
-  }
-
-  /** NO LONGER IN USE
-   * Text field for entering dependent column, sets component react state with
-   * user input -
-   * @param {Event} e - DOM Event from user interacting with UI text field
-   * @param {Object} props - react props object
-   * @returns {void} - no return value
-   */
-  handleDepColField(e) {
-    this.setState({
-      dependentCol: e.target.value,
-      errorResp: undefined
-    });
-  }
-
-  /**
   * simple click handler for selecting dependent column
   */
   depColDropDownClickHandler(e, d) {
@@ -202,19 +117,22 @@ class FileUploadForm extends Component {
     let tempKeys = this.getDataKeys();
     let catFeatList;
     let ordKeysList = [];
-    let userInput = d.text;
+    let userInput = e.target.innerText;
+
     // if valid key (input is a column key)
     if(tempKeys.includes(userInput)){
       // check other keys to see if already used for other options
 
-      // check if already selected in component state - currentSelection
-      let depColIndex = tempSelection.indexOf(d.text);
-      // if old dependent column in currentSelection, remove it immediately
+      // check if already selected in component state - currentSelection/tempSelection
+      let depColIndex = tempSelection.indexOf(userInput);
+      // if old dependent column in currentSelection, remove it immediately because
+      // this handler function is for dropdown, acts like toggle - when selecting
+      // option will always add/remove entry from currentSelection/tempSelection
       let oldDepColIndex = tempSelection.indexOf(dependentCol);
       oldDepColIndex > -1 ? tempSelection.splice(oldDepColIndex, 1) : null;
-
+      // get all category features
       catFeatures !== '' ? catFeatList = catFeatures.split(',') : catFeatList = [];
-      // if ordinalFeatures is proper json, can get keys
+      // get all ordinal features
       if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
         ordKeysList = Object.keys(ordinalFeatures);
       } else if(ordinalFeatures !== ""){ // else try to parse and get keys
@@ -227,15 +145,15 @@ class FileUploadForm extends Component {
             //return false;
         }
       }
-      let inCatList = catFeatList.includes(d.text);
-      let inOrdList = ordKeysList.includes(d.text);
+      let inCatList = catFeatList.includes(userInput);
+      let inOrdList = ordKeysList.includes(userInput);
       // window.console.log('inCatList', inCatList);
       // window.console.log('inOrdList', inOrdList);
       // window.console.log('depColIndex', depColIndex);
 
       // if new option is being selected, add it to currentSelection
       if(depColIndex === -1 && !inCatList && !inOrdList) {
-        tempSelection.push(d.text);
+        tempSelection.push(userInput);
       } else if (depColIndex > -1 && !inCatList && !inOrdList) {
         // if new option being selected is already in currentSelection but not
         // in category/ordinal features, remove new option from currentSelection
@@ -243,17 +161,11 @@ class FileUploadForm extends Component {
         userInput = '';
       }
 
-      if(!inCatList && !inOrdList && !tempSelection.includes(d.text) && depColIndex === -1) {
-        tempSelection.push(d.text);
+      if(!inCatList && !inOrdList && !tempSelection.includes(userInput) && depColIndex === -1) {
+        tempSelection.push(userInput);
       } else if(inCatList || inOrdList) {
         userInput = '';
       }
-      // check for categorical feature options
-      // !inCatList
-      // && !inOrdList
-      // && !tempSelection.includes(d.text)
-      // && depColIndex === -1
-      //   ? tempSelection.push(d.text) : null;
 
       window.console.log('currentSelection: ', tempSelection);
       this.setState({
@@ -267,23 +179,6 @@ class FileUploadForm extends Component {
       dependentCol: userInput
     });
 
-  }
-
-  /**
-   * text field/area for entering ordinal features
-   * user input
-   * @param {Event} e - DOM Event from user interacting with UI text field
-   * @param {Object} props - react props object
-   * @returns {void} - no return value
-   */
-  handleOrdinalFeatures(e) {
-    window.console.log('handleOrdinalFeatures: ', e.target.value);
-    //let safeInput = this.purgeUserInput(props.value);
-    //window.console.log('safe input ord: ', safeInput);
-    this.setState({
-      ordinalFeatures: e.target.value,
-      errorResp: undefined
-    });
   }
 
   /**
@@ -588,9 +483,7 @@ class FileUploadForm extends Component {
            dropDownObjList.push({
              key: key + '_' + i,
              value: key,
-             text: key,
-             onClick: dropDownClickHandler,
-             style: {}
+             text: key
            })
          }
        );
@@ -612,7 +505,6 @@ class FileUploadForm extends Component {
     } = this.state;
 
     let errorContent;
-    let ordTextAreaVal;
     let depColDropdown = this.getDropDown(this.depColDropDownClickHandler);
     let catDropdown = this.getDropDown(this.catDropDownClickHandler);
     let ordDropdown = this.getDropDown(this.ordDropDownClickHandler);
@@ -628,24 +520,17 @@ class FileUploadForm extends Component {
       window.setTimeout(this.errorPopupTimeout, 4555);
     }
 
-    // check input type for string to prevent attempting to stringify a string
-    this.isJson(ordinalFeatures) && typeof ordinalFeatures !== "string"
-      ? ordTextAreaVal = JSON.stringify(ordinalFeatures)
-      : ordTextAreaVal = ordinalFeatures;
-
     let accordionStuff = [
         (
           <CategoricalFeatInput
+            catFeatCallback={this.catDropDownClickHandler}
             catDropdown={catDropdown}
-            catFeatCallback={this.handleCatFeatures}
             catFeatures={catFeatures}
           />
         ),
         (
           <OrdinalFeatInput
             ordDropdown={ordDropdown}
-            ordFeatCallback={this.handleOrdinalFeatures}
-            ordTextAreaVal={ordTextAreaVal}
             ordinalFeatures={ordinalFeatures}
             showOrdModal={showOrdModal}
             updateOrdFeatFromModlCallback={this.updateOrdFeatFromModlCallback}
@@ -669,7 +554,7 @@ class FileUploadForm extends Component {
             >
               <DependentColumnInput
                 depColDropdown={depColDropdown}
-                depColCallback={this.handleDepColField}
+                depColCallback={this.depColDropDownClickHandler}
                 dependentCol={dependentCol}
               />
               <AccordionFormInput

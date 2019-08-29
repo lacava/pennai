@@ -11,11 +11,18 @@ class DependentColumnInput extends Component {
     this.state = {
     };
 
+    this.dropDwnHandler = this.dropDwnHandler.bind(this);
+
     this.depColHelpText = `The column that describes how each row is classified.
     For example, if analyzing a dataset of patients with different types of diabetes,
     this column may have the values "type1", "type2", or "none".`;
 
     //this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
+  }
+
+  dropDwnHandler(e, d) {
+    window.console.log('cat drop down handler', e.target.innerText);
+    window.console.log('cat drop down handler', d.value);
   }
 
   render() {
@@ -42,17 +49,10 @@ class DependentColumnInput extends Component {
             text={dependentCol ? dependentCol : "Select dependent column"}
             selection
             search
+            onChange={depColCallback}
             options={depColDropdown}
           >
           </Dropdown>
-          {/*<input
-            id="dependent_column_text_field_input"
-            className="file-upload-dependent-text-field"
-            placeholder="Or enter dataset dependent column manually"
-            value={dependentCol ? dependentCol : ""}
-            type="text"
-            onChange={depColCallback}
-          />*/}
           <Popup
             on="click"
             position="right center"
