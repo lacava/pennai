@@ -53,7 +53,7 @@ class OrdinalFeatInput extends Component {
                    let tempOrdState = {...ordinalFeatures};
                    tempOrdState[selectedOrdKey] = items_test;
                    window.console.log('new order', tempOrdState);
-                   this.setState({ordinalFeatures: tempOrdState})
+                   //this.setState({ordinalFeatures: tempOrdState})
                    //this.setState({items_test});
                    updateOrdFeatFromModlCallback(tempOrdState)
                  }}
@@ -73,6 +73,7 @@ class OrdinalFeatInput extends Component {
       ordDropdown,
       showOrdModal,
       ordModalCloseCallback,
+      ordDropDownClickHandler,
       ordinalFeatures,
       dropdwnKeys
     } = this.props;
@@ -98,8 +99,9 @@ class OrdinalFeatInput extends Component {
               return tempDropdwnVals;
             }}
             multiple
+            selection
             options={ordDropdown}
-            onChange={this.dropDwnHandler}
+            onChange={ordDropDownClickHandler}
           >
           </Dropdown>
           <Modal

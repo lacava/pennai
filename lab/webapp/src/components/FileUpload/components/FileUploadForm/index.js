@@ -31,8 +31,8 @@ class FileUploadForm extends Component {
 
     this.getDataKeys = this.getDataKeys.bind(this);
     this.handleSelectedFile = this.handleSelectedFile.bind(this);
-    this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
-    this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
+    //this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
+    //this.catDropDownClickHandler = this.catDropDownClickHandler.bind(this);
     this.ordDropDownClickHandler = this.ordDropDownClickHandler.bind(this);
     this.ordModalClose = this.ordModalClose.bind(this);
     this.updateOrdFeatFromModlCallback = this.updateOrdFeatFromModlCallback.bind(this);
@@ -172,40 +172,35 @@ class FileUploadForm extends Component {
         currentSelection: tempSelection
       });
     }
-
-    // window.console.log('tempSelection: ', tempSelection);
-    //window.console.log('currentSelection: ', tempSelection);
+  updateOrdFeatFromModlCallback(newOrdFeats) {
     this.setState({
-      dependentCol: userInput
+      ordinalFeatures: newOrdFeats
     });
-
   }
 
-  /**
-  * take selected key and generate ordered list of values for given key
-  */
   ordDropDownClickHandler(e, d) {
     const { datasetPreview, ordinalFeatures } = this.state;
-    let selectedKey = d.text;
+    //window.console.log('ord dropdwon', e.target);
+    let selectedKey = e.target.innerText;
     let tempOrdKeys = [];
     let oldOrdFeats = {};
     // if ordinalFeatures is proper json, can get keys
     if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
-      tempOrdKeys = Object.keys(ordinalFeatures);
-      // keep track of previously selected ordinal keys - will either add or remove
-      // current user selection
-      oldOrdFeats = ordinalFeatures;
+     tempOrdKeys = Object.keys(ordinalFeatures);
+     // keep track of previously selected ordinal keys - will either add or remove
+     // current user selection
+     oldOrdFeats = ordinalFeatures;
     } else if(ordinalFeatures !== ""){ // else try to parse and get keys
-      window.console.log('trying to parse', ordinalFeatures);
-      let tempObj;
-      try {
-          tempObj = JSON.parse(ordinalFeatures);
-          oldOrdFeats = tempObj;
-          tempOrdKeys = Object.keys(tempObj)
-      } catch (e) {
-          window.console.error(' uh o ----> ', e);
-          //return false;
-      }
+     window.console.log('trying to parse', ordinalFeatures);
+     let tempObj;
+     try {
+         tempObj = JSON.parse(ordinalFeatures);
+         oldOrdFeats = tempObj;
+         tempOrdKeys = Object.keys(tempObj)
+     } catch (e) {
+         window.console.error(' uh o ----> ', e);
+         //return false;
+     }
     }
 
     let tempOrdFeats = {};
@@ -213,33 +208,24 @@ class FileUploadForm extends Component {
     // keep track of currently selected ordinal feature(s)
     ordIndex > -1 ? tempOrdKeys.splice(ordIndex, 1) : tempOrdKeys.push(selectedKey);
     tempOrdKeys.forEach(ordKey => {
-      let tempVals = [];
-      datasetPreview.data.forEach(row => {
-        //tempOrdFeats[ordKey] = row[ordKey];
-        let oldOrdKeys = Object.keys(oldOrdFeats);
+     let tempVals = [];
+     datasetPreview.data.forEach(row => {
+       //tempOrdFeats[ordKey] = row[ordKey];
+       let oldOrdKeys = Object.keys(oldOrdFeats);
 
-        if(oldOrdKeys.includes(ordKey)) {
-          tempVals = oldOrdFeats[ordKey];
-        } else {
-          !tempVals.includes(row[ordKey]) && row[ordKey] ? tempVals.push(row[ordKey]) : null;
-        }
-      })
-      tempOrdFeats[ordKey] = tempVals;
+       if(oldOrdKeys.includes(ordKey)) {
+         tempVals = oldOrdFeats[ordKey];
+       } else {
+         !tempVals.includes(row[ordKey]) && row[ordKey] ? tempVals.push(row[ordKey]) : null;
+       }
+     })
+     tempOrdFeats[ordKey] = tempVals;
     });
     window.console.log('temp ord feats list for dropdown', tempOrdFeats);
     this.setState({
-      ordKeys: tempOrdKeys,
-      ordinalFeatures: tempOrdFeats,
-      showOrdModal: true
-    });
-  }
-
-  /**
-  * update react ordinal feature state from sortable list in modal
-  */
-  updateOrdFeatFromModlCallback(newOrdFeats) {
-    this.setState({
-      ordinalFeatures: newOrdFeats
+     ordKeys: tempOrdKeys,
+     ordinalFeatures: tempOrdFeats,
+     showOrdModal: true
     });
   }
 
@@ -475,7 +461,7 @@ class FileUploadForm extends Component {
    /**
    * create dropdown menu of data column dataKeys, pass in callback for each item
    */
-   getDropDown(dropDownClickHandler) {
+   getDropDown() {
        //window.console.log('making dropdown');
        let tempKeys = this.getDataKeys();
        let dropDownObjList = [];
@@ -505,9 +491,9 @@ class FileUploadForm extends Component {
     } = this.state;
 
     let errorContent;
-    let depColDropdown = this.getDropDown(this.depColDropDownClickHandler);
-    let catDropdown = this.getDropDown(this.catDropDownClickHandler);
-    let ordDropdown = this.getDropDown(this.ordDropDownClickHandler);
+    let depColDropdown = this.getDropDown();
+    let catDropdown = this.getDropDown();
+    let ordDropdown = this.getDropDown();
     // default to hidden until a file is selected, then display input areas
     let formInputClass = "file-upload-form-hide-inputs";
 
@@ -523,7 +509,7 @@ class FileUploadForm extends Component {
     let accordionStuff = [
         (
           <CategoricalFeatInput
-            catFeatCallback={this.catDropDownClickHandler}
+            catFeatCallback={(e) => e}
             catDropdown={catDropdown}
             catFeatures={catFeatures}
           />
@@ -533,6 +519,7 @@ class FileUploadForm extends Component {
             ordDropdown={ordDropdown}
             ordinalFeatures={ordinalFeatures}
             showOrdModal={showOrdModal}
+            ordDropDownClickHandler={this.ordDropDownClickHandler}
             updateOrdFeatFromModlCallback={this.updateOrdFeatFromModlCallback}
             ordModalCloseCallback={this.ordModalClose}
           />
