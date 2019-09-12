@@ -33,8 +33,6 @@ class DependentColumnInput extends Component {
         <p style={{color: 'white'}}>
           Dependent Column
         </p>
-
-
         <Form.Input
           id="dep_column_form_input_two"
           style={{

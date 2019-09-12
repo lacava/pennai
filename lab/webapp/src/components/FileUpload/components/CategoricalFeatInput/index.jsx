@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import SceneHeader from '../../../SceneHeader';
 import { Header, Dropdown, Form, Popup, Icon } from 'semantic-ui-react';
-import Papa from 'papaparse';
 
 class CategoricalFeatInput extends Component {
 
@@ -26,14 +25,15 @@ class CategoricalFeatInput extends Component {
   }
 
   render() {
-    const { catDropdown, catFeatures, catFeatCallback } = this.props;
+    const { catDropdown, catFeatures, catFeatCallback, catDropdownTest } = this.props;
+    let listToDisplay = catFeatures.split(",");
     return (
       <div>
-        <Dropdown
+        {/*<Dropdown
           style={{
             width: '65%'
           }}
-          text="Select categorical features"
+          text={ catFeatures !== "" ? catFeatures : "Select categorical features"}
           search
           selection
           multiple
@@ -41,7 +41,18 @@ class CategoricalFeatInput extends Component {
           onClose={catFeatCallback}
           onChange={catFeatCallback}
         >
-        </Dropdown>
+        </Dropdown>*/}
+        <select
+          style={{
+            width: '65%'
+          }}
+          name='plain_dropdown_category'
+          multiple
+          onChange={catFeatCallback}
+        >
+          <option value="" disabled>--Please select categorical features--</option>
+          {catDropdownTest}
+        </select>
       </div>
     );
   }
