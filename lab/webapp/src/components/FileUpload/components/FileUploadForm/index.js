@@ -325,7 +325,7 @@ class FileUploadForm extends Component {
     this.setState({
      ordKeys: tempOrdKeys,
      ordinalFeatures: tempOrdFeatsTest,
-     showOrdModal: false
+     showOrdModal: true
     });
   }
 
