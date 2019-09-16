@@ -45,101 +45,12 @@ class FileUploadForm extends Component {
   }
 
   /**
-  * Get list of keys/column names from data preview
-  * @returns {Array} - column names/keys
-  */
-  getDataKeys() {
-    const { datasetPreview } = this.state;
-    let dataKeys = [];
-    if(datasetPreview) {
-      //dataKeys = Object.keys(datasetPreview);
-      dataKeys = datasetPreview.meta.fields;
-    }
-    return dataKeys;
-  }
-
-  /**
-  * Select from available column keys, store in comma seperated list of categorical
-  * features
-  */
-  catDropDownClickHandler(e, d) {
-    const { catFeatures, dependentCol, ordinalFeatures } = this.state;
-    window.console.log('catDropDownClickHandler');
-    let tempKeys = this.getDataKeys();
-    //let selectedKey = d.text;
-    //let selectedKey = e.target.innerText;
-    // get list of all selected options
-    // https://stackoverflow.com/questions/5866169/how-to-get-all-selected-values-of-a-multiple-select-box
-    let dropdownOptions = e.target.options;
-    let selectedOpts = [];
-    for(var opt in dropdownOptions) {
-      dropdownOptions[opt].selected && dropdownOptions[opt].value !== "" ? selectedOpts.push(dropdownOptions[opt].value) : null;
-    }
-    window.console.log('selectedOpts (before checking other fields): ', selectedOpts);
-
-    let selectedKey = e.target.value;
-    let catFeatList;
-    let ordKeysList = [];
-    // if categorical features is not empty, try to split on comma
-    catFeatures !== '' ? catFeatList = catFeatures.split(',') : catFeatList = [];
-    // keep track of if currently selected category is already in list
-    let catIndex = catFeatList.indexOf(selectedKey);
-    // if category already in list, remove it, else add it
-    catIndex > -1 ? catFeatList.splice(catIndex, 1) : catFeatList.push(selectedKey);
-
-
-    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
-      ordKeysList = Object.keys(ordinalFeatures);
-    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
-      let tempObj;
-      try {
-          tempObj = JSON.parse(ordinalFeatures);
-          ordKeysList = Object.keys(tempObj);
-      } catch (e) {
-          window.console.error(' uh o ----> ', e);
-          //return false;
-      }
-    }
-
-    //let inDepCol = catFeatList.includes(dependentCol);
-    let inDepCol = selectedOpts.includes(dependentCol);
-
-    if (inDepCol) {
-      let depColIndex = selectedOpts.indexOf(dependentCol);
-      depColIndex > -1 ? selectedOpts.splice(depColIndex, 1) : null;
-    }
-    ordKeysList.forEach(ordKey => {
-      let ordFeatIndex = selectedOpts.indexOf(ordKey);
-      ordFeatIndex > -1 ? selectedOpts.splice(ordFeatIndex, 1) : null;
-    })
-
-    // let inOrdinalFeatures = ordKeysList.includes(selectedKey);
-    // let catFeatIndex = tempSelection.indexOf(selectedKey);
-    //
-    // if(catFeatIndex === -1 && !inDepCol && !inOrdinalFeatures) {
-    //   tempSelection.push(selectedKey)
-    // } else if (inOrdinalFeatures) {
-    //   let ordFeatIndex = selectedOpts.indexOf(selectedKey);
-    //   ordFeatIndex > -1 ? selectedOpts.splice(ordFeatIndex, 1) : null;
-    // }
-
-    //window.console.log('currentSelection: ', tempSelection);
-    //window.console.log('catFeatList: ', catFeatList);
-    window.console.log('selectedOpts (after checking other fields): ', selectedOpts);
-    this.setState({
-      catFeatures: selectedOpts.join()
-    });
-  }
-
-  /**
-  * simple click handler for selecting dependent column
+  * basic click handler for selecting dependent column
   */
   depColDropDownClickHandler(e, d) {
     const { dependentCol, catFeatures, ordinalFeatures} = this.state;
-
     let userInput = e.target.innerText;
     let ordKeysList = [];
-
     // check other keys to see if already used for other options
     if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
       ordKeysList = Object.keys(ordinalFeatures);
@@ -149,24 +60,69 @@ class FileUploadForm extends Component {
           tempObj = JSON.parse(ordinalFeatures);
           ordKeysList = Object.keys(tempObj);
       } catch (e) {
-          window.console.error(' uh o ----> ', e);
-          //return false;
+          window.console.error('error parsing ordinal feature options ----> ', e);
       }
     }
+    // is currently selected dependent column option already in use
     let inOrdFeats = ordKeysList.includes(userInput);
-
+    // also need to check any currently selected categoical features
     let catFeatList;
     catFeatures !== '' && catFeatures.includes(',')
       ? catFeatList = catFeatures.split(',')
       : catFeatList = [catFeatures];
     let inCatFeats = catFeatList.includes(userInput);
-    window.console.log('dependentCol: ', dependentCol);
     // only set state if new user input not being used in other fields
     if(!inOrdFeats && !inCatFeats) {
       this.setState({
         dependentCol: userInput
       });
     }
+  }
+
+  /**
+  * Select from available column keys, store in comma seperated list of categorical
+  * features in this react component's (FileUplodaForm) state
+  */
+  catDropDownClickHandler(e, d) {
+    const { catFeatures, dependentCol, ordinalFeatures } = this.state;
+    window.console.log('catDropDownClickHandler');
+    // get list of all selected options
+    // https://stackoverflow.com/questions/5866169/how-to-get-all-selected-values-of-a-multiple-select-box
+    let dropdownOptions = e.target.options;
+    let selectedOpts = [];
+    for(var opt in dropdownOptions) {
+      dropdownOptions[opt].selected && dropdownOptions[opt].value !== ""
+        ? selectedOpts.push(dropdownOptions[opt].value) : null;
+    }
+    // check other options to see if selected key is already being used
+    let ordKeysList = [];
+    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
+      ordKeysList = Object.keys(ordinalFeatures);
+    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
+      let tempObj;
+      try {
+          tempObj = JSON.parse(ordinalFeatures);
+          ordKeysList = Object.keys(tempObj);
+      } catch (e) {
+          window.console.error('error parsing ordinal feature options ---->', e);
+      }
+    }
+    // is currently selected category option(s) already in use?
+    // if selected options already in use, remove it/prevent selection
+    let inDepCol = selectedOpts.includes(dependentCol);
+    if (inDepCol) {
+      let depColIndex = selectedOpts.indexOf(dependentCol);
+      depColIndex > -1 ? selectedOpts.splice(depColIndex, 1) : null;
+    }
+    ordKeysList.forEach(ordKey => {
+      let ordFeatIndex = selectedOpts.indexOf(ordKey);
+      ordFeatIndex > -1 ? selectedOpts.splice(ordFeatIndex, 1) : null;
+    })
+
+    window.console.log('selectedOpts (after checking other fields): ', selectedOpts);
+    this.setState({
+      catFeatures: selectedOpts.join()
+    });
   }
 
   updateOrdFeatFromModlCallback(newOrdFeats) {
@@ -236,45 +192,27 @@ class FileUploadForm extends Component {
   ordDropDownClickHandler(e, d) {
     const { datasetPreview, ordinalFeatures, dependentCol, catFeatures } = this.state;
 
-    let selectedKey = e.target.innerText;
-    let tempOrdKeys = [];
+    //let selectedKey = e.target.innerText;
+    let oldOrdKeys = [];
     let oldOrdFeats = {};
-
+    // get list of all selected options - check catDropDownClickHandler
     let dropdownOptions = e.target.options;
     let selectedOpts = [];
     for(var opt in dropdownOptions) {
       dropdownOptions[opt].selected && dropdownOptions[opt].value !== "" ? selectedOpts.push(dropdownOptions[opt].value) : null;
     }
-    window.console.log('selectedOpts for ordinal (before checking other fields)', selectedOpts);
-    // if ordinalFeatures is proper json, can get keys
-    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
-     tempOrdKeys = Object.keys(ordinalFeatures);
-     // keep track of previously selected ordinal keys - will either add or remove
-     // current user selection
-     oldOrdFeats = ordinalFeatures;
-    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
-     window.console.log('trying to parse', ordinalFeatures);
-     let tempObj;
-     try {
-         tempObj = JSON.parse(ordinalFeatures);
-         oldOrdFeats = tempObj;
-         tempOrdKeys = Object.keys(tempObj)
-     } catch (e) {
-         window.console.error(' uh o ----> ', e);
-         //return false;
-     }
-    }
+    oldOrdKeys = Object.keys(ordinalFeatures);
+
     // if one of currently selected option is used as dependentCol, can not use
     // that input for ordinal features
     let inDepCol = selectedOpts.includes(dependentCol);
     if(inDepCol) {
-      let depColIndex = selectedOpts.indexOf(selectedKey);
+      let depColIndex = selectedOpts.indexOf(dependentCol);
       depColIndex > -1 ? selectedOpts.splice(depColIndex, 1) : null;
     }
     // convert currently selected options list and categorical_features list in react state
     // to Sets and get intersection - if intersection is not empty remove those items
-    // i.e prevent user from selecting option already in use elsewhere
-    // if categorical features is not empty, try to split on comma
+    // i.e. prevent user from selecting option already in use elsewhere
     let catFeatList;
     catFeatures !== '' && catFeatures.includes(',')
       ? catFeatList = catFeatures.split(',')
@@ -282,32 +220,13 @@ class FileUploadForm extends Component {
     let catSet = new Set(catFeatList);
     let ordOptSet = new Set(selectedOpts);
     let catOrdOverlap = this.getIntersection(catSet, ordOptSet);
-    window.console.log('catOrdOverlap', catOrdOverlap);
+    //window.console.log('catOrdOverlap', catOrdOverlap);
 
     catOrdOverlap.forEach(opt => ordOptSet.delete(opt));
-    window.console.log('selectedOpts for ordinal (after checking other fields)', Array.from(ordOptSet));
-    //let inCategorical = selectedOpts.includes(dependentCol);
 
-    let tempOrdFeats = {};
-    let ordIndex = tempOrdKeys.indexOf(selectedKey);
-    // keep track of currently selected ordinal feature(s)
-    ordIndex > -1 ? tempOrdKeys.splice(ordIndex, 1) : tempOrdKeys.push(selectedKey);
-    tempOrdKeys.forEach(ordKey => {
-     let tempVals = [];
-     datasetPreview.data.forEach(row => {
-       //tempOrdFeats[ordKey] = row[ordKey];
-       let oldOrdKeys = Object.keys(oldOrdFeats);
-
-       if(oldOrdKeys.includes(ordKey)) {
-         tempVals = oldOrdFeats[ordKey];
-       } else {
-         !tempVals.includes(row[ordKey]) && row[ordKey] ? tempVals.push(row[ordKey]) : null;
-       }
-     })
-     tempOrdFeats[ordKey] = tempVals;
-    });
     let tempOrdFeatsTest = {};
-    Array.from(ordOptSet).forEach(ordKey => {
+    let ordOptKeyList = Array.from(ordOptSet);
+    ordOptKeyList.forEach(ordKey => {
      let tempVals = [];
      datasetPreview.data.forEach(row => {
        //tempOrdFeats[ordKey] = row[ordKey];
@@ -321,9 +240,23 @@ class FileUploadForm extends Component {
      })
      tempOrdFeatsTest[ordKey] = tempVals;
     });
-    window.console.log('temp ord feats list for dropdown', tempOrdFeatsTest);
+
+    // TODO: work on comparing previous options with current selection, if a new item
+    //       is being added perhaps toggle openning the modal
+
+    // compare old options with new options, if new item is being added open model
+    // to prompt user to specify order, otherwise do not open model
+    // can use javascript Sets or arrays -
+    // https://stackoverflow.com/questions/1723168/what-is-the-fastest-or-most-elegant-way-to-compute-a-set-difference-using-javas
+    // let oldOrdOpts = new Set(oldOrdKeys);
+    // let newOrdOpts = new Set(ordOptKeyList);
+    // let oldOrdOverlap = new Set([...oldOrdOpts].filter(oldOpt => !newOrdOpts.has(oldOpt)));
+    // let oldOrdOverlapList = ordOptKeyList.filter(opt => !oldOrdKeys.includes(opt));
+    // window.console.log('oldOrdOverlap', oldOrdOverlap);
+    // window.console.log('oldOrdOverlapList', oldOrdOverlapList);
+    // let showOrdMod = false;
     this.setState({
-     ordKeys: tempOrdKeys,
+     ordKeys: ordOptKeyList,
      ordinalFeatures: tempOrdFeatsTest,
      showOrdModal: true
     });
@@ -532,41 +465,8 @@ class FileUploadForm extends Component {
 
    }
 
-   /*
-   * Basic helper to test for JSON
-   * https://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
-   */
-   isJson(item) {
-       item = typeof item !== 'string'
-           ? JSON.stringify(item)
-           : item;
-
-       try {
-           item = JSON.parse(item);
-       } catch (e) {
-           return false;
-       }
-
-       if (typeof item === 'object' && item !== null) {
-           return true;
-       }
-
-       return false;
-   }
-
-   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
-   getIntersection(setA, setB) {
-       var _intersection = new Set();
-       for (var elem of setB) {
-           if (setA.has(elem)) {
-               _intersection.add(elem);
-           }
-       }
-       return _intersection;
-   }
-
    /****************************************************************************/
-   /*        Helper methods to create inputs & form elements                   */
+   /*                Basic helper/util methods                                 */
    /****************************************************************************/
 
    /**
@@ -604,6 +504,52 @@ class FileUploadForm extends Component {
      return dropDownObjList;
    }
 
+   /**
+   * Get list of keys/column names from data preview
+   * @returns {Array} - column names/keys
+   */
+   getDataKeys() {
+     const { datasetPreview } = this.state;
+     let dataKeys = [];
+     if(datasetPreview) {
+       //dataKeys = Object.keys(datasetPreview);
+       dataKeys = datasetPreview.meta.fields;
+     }
+     return dataKeys;
+   }
+
+   /*
+   * test input for JSON, handles string or raw object
+   * https://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
+   */
+   isJson(item) {
+       item = typeof item !== 'string'
+           ? JSON.stringify(item)
+           : item;
+
+       try {
+           item = JSON.parse(item);
+       } catch (e) {
+           return false;
+       }
+
+       if (typeof item === 'object' && item !== null) {
+           return true;
+       }
+
+       return false;
+   }
+
+   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+   getIntersection(setA, setB) {
+       var _intersection = new Set();
+       for (var elem of setB) {
+           if (setA.has(elem)) {
+               _intersection.add(elem);
+           }
+       }
+       return _intersection;
+   }
 
   render() {
 
@@ -621,8 +567,8 @@ class FileUploadForm extends Component {
     let errorContent;
     let depColDropdown = this.getDropDown();
     let catDropdown = this.getDropDown();
-    let catDropdownTest = this.getSelectDropDown();
-    let ordDropdownTest = this.getSelectDropDown();
+    let categorySelectOpts = this.getSelectDropDown();
+    let ordinalSelectOpts = this.getSelectDropDown();
     let ordDropdown = this.getDropDown();
     // default to hidden until a file is selected, then display input areas
     let formInputClass = "file-upload-form-hide-inputs";
@@ -641,19 +587,19 @@ class FileUploadForm extends Component {
     //       <CategoricalFeatInput
     //         catFeatCallback={this.catDropDownClickHandler}
     //         catDropdown={catDropdown}
-    //         catDropdownTest={catDropdownTest}
+    //         catDropdownTest={catDropdown}
     //         catFeatures={catFeatures}
     //       />
     //     ),
     //     (
-    //       <OrdinalFeatInput
+    //       <OrdinalDropdown
     //         ordDropdown={ordDropdown}
     //         ordinalFeatures={ordinalFeatures}
     //         showOrdModal={showOrdModal}
     //         ordDropDownClickHandler={this.ordDropDownClickHandler}
     //         updateOrdFeatFromModlCallback={this.updateOrdFeatFromModlCallback}
     //         ordModalCloseCallback={this.ordModalClose}
-    //         ordDropdownTest={ordDropdownTest}
+    //         ordDropdownTest={ordDropdown}
     //       />
     //     )
     // ];
@@ -663,7 +609,7 @@ class FileUploadForm extends Component {
           <CategoricalFeatInput
             catFeatCallback={this.catDropDownClickHandler}
             catDropdown={catDropdown}
-            catDropdownTest={catDropdownTest}
+            catSelectOptions={categorySelectOpts}
             catFeatures={catFeatures}
           />
         ),
@@ -675,7 +621,7 @@ class FileUploadForm extends Component {
             ordDropDownClickHandler={this.ordDropDownClickHandler}
             updateOrdFeatFromModlCallback={this.updateOrdFeatFromModlCallback}
             ordModalCloseCallback={this.ordModalClose}
-            ordDropdownTest={ordDropdownTest}
+            ordSelectOpts={ordinalSelectOpts}
           />
         )
     ];
@@ -698,9 +644,9 @@ class FileUploadForm extends Component {
                 depColCallback={this.depColDropDownClickHandler}
                 dependentCol={dependentCol}
               />
-              <AccordionFormInput
+              {<AccordionFormInput
                 accordionStuff={accordionStuff}
-              />
+              />}
               <Popup
                 header="Error Submitting Dataset"
                 content={errorContent}

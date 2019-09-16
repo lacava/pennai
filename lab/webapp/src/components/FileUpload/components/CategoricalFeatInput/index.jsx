@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import SceneHeader from '../../../SceneHeader';
+import CurrentlySelectedKeys from '../CurrentlySelectedKeys';
 import { Header, Dropdown, Form, Popup, Icon } from 'semantic-ui-react';
 
 class CategoricalFeatInput extends Component {
@@ -10,8 +11,6 @@ class CategoricalFeatInput extends Component {
     this.state = {
     };
 
-    this.dropDwnHandler = this.dropDwnHandler.bind(this);
-
     this.catFeatHelpText = (<p>Categorical features have a discrete number of categories that do not have an intrinsic order.
     Some examples include sex ("male", "female") or eye color ("brown", "green", "blue"...).
     <br/><br/>
@@ -19,41 +18,68 @@ class CategoricalFeatInput extends Component {
     <i>sex, eye_color</i></p>);
   }
 
-  dropDwnHandler(e, d) {
-    window.console.log('cat drop down handler', e.target.innerText);
-    window.console.log('cat drop down handler', d.value);
-  }
-
   render() {
-    const { catDropdown, catFeatures, catFeatCallback, catDropdownTest } = this.props;
+    const { catDropdown, catFeatures, catFeatCallback, catSelectOptions } = this.props;
     let listToDisplay = catFeatures.split(",");
     return (
       <div>
-        {/*<Dropdown
+        <div
           style={{
+            marginTop: '10px',
+            marginBottom: '10px',
             width: '65%'
           }}
-          text={ catFeatures !== "" ? catFeatures : "Select categorical features"}
-          search
-          selection
-          multiple
-          options={catDropdown}
-          onClose={catFeatCallback}
-          onChange={catFeatCallback}
         >
-        </Dropdown>*/}
-        <select
-          style={{
-            width: '65%'
-          }}
-          name='plain_dropdown_category'
-          multiple
-          onChange={catFeatCallback}
-        >
-          <option value="" disabled>--Please select categorical features--</option>
-          {catDropdownTest}
-        </select>
+          {/*<Dropdown
+            style={{
+              width: '65%'
+            }}
+            text={ catFeatures !== "" ? catFeatures : "Select categorical features"}
+            search
+            selection
+            multiple
+            options={catDropdown}
+            onClose={catFeatCallback}
+            onChange={catFeatCallback}
+          >
+          </Dropdown>*/}
+          {/*<p style={{color: 'white'}}>
+            Categorical Features
+            <Popup
+              on="click"
+              position="right center"
+              header="Categorical Features Help"
+              content={
+                <div className="content">
+                 {this.catFeatHelpText}
+                </div>
+              }
+              trigger={
+                <Icon
+                  className="file-upload-categorical-help-icon-standalone"
+                  inverted
+                  size="large"
+                  color="orange"
+                  name="info circle"
+                />
+              }
+            />
+          </p>*/}
+          <select
+            name='plain_dropdown_category'
+            multiple
+            onChange={catFeatCallback}
+          >
+            <option value="" disabled>--Please select categorical features--</option>
+            {catSelectOptions}
+          </select>
+        </div>
+        <CurrentlySelectedKeys
+          fieldType={"Categorical"}
+          selectionToDisplay={catFeatures}
+        />
       </div>
+
     );
   }
 }

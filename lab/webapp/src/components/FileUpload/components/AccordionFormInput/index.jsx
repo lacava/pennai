@@ -78,7 +78,7 @@ class AccordionFormInput extends Component {
              onClick={this.handleAccordionClick}
             >
              <Icon name='dropdown' />
-             Enter Categorical Features
+             Select Categorical Features
            </Accordion.Title>
            <Popup
              on="click"
@@ -111,7 +111,7 @@ class AccordionFormInput extends Component {
               onClick={this.handleAccordionClick}
              >
               <Icon name='dropdown' />
-              Enter Ordinal Features
+              Select Ordinal Features
             </Accordion.Title>
             <Popup
               on="click"
