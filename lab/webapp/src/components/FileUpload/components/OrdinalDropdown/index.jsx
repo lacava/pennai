@@ -85,7 +85,7 @@ class OrdinalFeatInput extends Component {
     if(ordinalFeatures !== "" && ordKeys.length) {
       selectionDisplay = JSON.stringify(ordinalFeatures, null, 2)
     }
-    window.console.log('selectionDisplay', selectionDisplay);
+    //window.console.log('selectionDisplay', selectionDisplay);
     return (
       <div
         style={{marginTop: '10px', marginBottom: '10px'}}
@@ -148,7 +148,7 @@ class OrdinalFeatInput extends Component {
             {ordSelectOpts}
           </select>
           <CurrentlySelectedKeys
-            fieldType={"Ordinal"}
+            fieldType="Ordinal"
             selectionToDisplay={selectionDisplay}
           />
           <Modal

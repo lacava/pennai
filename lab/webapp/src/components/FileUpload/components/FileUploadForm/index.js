@@ -85,7 +85,7 @@ class FileUploadForm extends Component {
   */
   catDropDownClickHandler(e, d) {
     const { catFeatures, dependentCol, ordinalFeatures } = this.state;
-    window.console.log('catDropDownClickHandler');
+    //window.console.log('catDropDownClickHandler');
     // get list of all selected options
     // https://stackoverflow.com/questions/5866169/how-to-get-all-selected-values-of-a-multiple-select-box
     let dropdownOptions = e.target.options;
@@ -119,7 +119,7 @@ class FileUploadForm extends Component {
       ordFeatIndex > -1 ? selectedOpts.splice(ordFeatIndex, 1) : null;
     })
 
-    window.console.log('selectedOpts (after checking other fields): ', selectedOpts);
+    //window.console.log('selectedOpts (after checking other fields): ', selectedOpts);
     this.setState({
       catFeatures: selectedOpts.join()
     });

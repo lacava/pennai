@@ -75,7 +75,7 @@ class CategoricalFeatInput extends Component {
           </select>
         </div>
         <CurrentlySelectedKeys
-          fieldType={"Categorical"}
+          fieldType="Categorical"
           selectionToDisplay={catFeatures}
         />
       </div>

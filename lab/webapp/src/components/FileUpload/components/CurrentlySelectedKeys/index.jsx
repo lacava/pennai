@@ -14,7 +14,7 @@ class CurrentlySelectedKeys extends Component {
 
   render() {
     const { selectionToDisplay, fieldType } = this.props;
-    window.console.log('CurrentlySelectedKeys', selectionToDisplay);
+    //window.console.log('CurrentlySelectedKeys', selectionToDisplay);
     return (
       <div
       >
