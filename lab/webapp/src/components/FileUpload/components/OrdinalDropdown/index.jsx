@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import SceneHeader from '../../../SceneHeader';
+import CurrentlySelectedKeys from '../CurrentlySelectedKeys';
 import SortableList from '../SortableList';
 import { Header, Dropdown, Form, Popup, Icon, Segment, Modal } from 'semantic-ui-react';
-import Papa from 'papaparse';
 
 class OrdinalFeatInput extends Component {
 
@@ -75,14 +75,22 @@ class OrdinalFeatInput extends Component {
       ordModalCloseCallback,
       ordDropDownClickHandler,
       ordinalFeatures,
-      dropdwnKeys
+      dropdwnKeys,
+      ordSelectOpts
     } = this.props;
 
     let ordModalContent = this.makeOrdModalContent();
     let ordKeys = Object.keys(ordinalFeatures);
+    let selectionDisplay;
+    if(ordinalFeatures !== "" && ordKeys.length) {
+      selectionDisplay = JSON.stringify(ordinalFeatures, null, 2)
+    }
+    //window.console.log('selectionDisplay', selectionDisplay);
     return (
-      <div>
-          <Dropdown
+      <div
+        style={{marginTop: '10px', marginBottom: '10px'}}
+      >
+          {/*<Dropdown
             style={{
               backgroundColor: "white",
               width: '65%'
@@ -103,7 +111,46 @@ class OrdinalFeatInput extends Component {
             options={ordDropdown}
             onChange={ordDropDownClickHandler}
           >
-          </Dropdown>
+          </Dropdown>*/}
+
+          {/*<p style={{color: 'white'}}>
+            Ordinal Features
+            <Popup
+              on="click"
+              position="right center"
+              header="Ordinal Features Help"
+              content={
+                <div className="content">
+                 {this.ordFeatHelpText}
+                </div>
+              }
+              trigger={
+                <Icon
+                  inverted
+                  size="large"
+                  color="orange"
+                  name="info circle"
+                  className="file-upload-ord-help-icon"
+                />
+              }
+            />
+          </p>*/}
+
+          <select
+            style={{
+              width: '65%'
+            }}
+            name='plain_dropdown_ordinal'
+            multiple
+            onChange={ordDropDownClickHandler}
+          >
+            <option value="" disabled>--Please select ordinal features--</option>
+            {ordSelectOpts}
+          </select>
+          <CurrentlySelectedKeys
+            fieldType="Ordinal"
+            selectionToDisplay={selectionDisplay}
+          />
           <Modal
              size="small"
              open={showOrdModal}

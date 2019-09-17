@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import SceneHeader from '../../../SceneHeader';
+import CurrentlySelectedKeys from '../CurrentlySelectedKeys';
 import { Header, Dropdown, Form, Popup, Icon } from 'semantic-ui-react';
-import Papa from 'papaparse';
 
 class CategoricalFeatInput extends Component {
 
@@ -16,66 +16,75 @@ class CategoricalFeatInput extends Component {
     <br/><br/>
     Describe these features using a comma separated list of the field names:
     <i>sex, eye_color</i></p>);
-
-    //this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
   }
 
-// className="file-upload-categorical-help-icon"
   render() {
-    const { catDropdown, catFeatures, catFeatCallback } = this.props;
+    const { catDropdown, catFeatures, catFeatCallback, catSelectOptions } = this.props;
+    let listToDisplay = catFeatures.split(",");
     return (
       <div>
-        <Dropdown
+        <div
           style={{
+            marginTop: '10px',
+            marginBottom: '10px',
             width: '65%'
           }}
-          text="Select categorical features"
-          search
-          selection
-          multiple
-          value={catFeatures.split(',')}
-          options={catDropdown}
         >
-        </Dropdown>
-        <textarea
-          style={{
-            width: '65%'
-          }}
-          id="categorical_features_text_area_input"
-          label="Categorical Features"
-          placeholder={"cat_feat_1, cat_feat_2"}
-          value={catFeatures ? catFeatures : ""}
-          onChange={catFeatCallback}
+          {/*<Dropdown
+            style={{
+              width: '65%'
+            }}
+            text={ catFeatures !== "" ? catFeatures : "Select categorical features"}
+            search
+            selection
+            multiple
+            options={catDropdown}
+            onClose={catFeatCallback}
+            onChange={catFeatCallback}
+          >
+          </Dropdown>*/}
+          {/*<p style={{color: 'white'}}>
+            Categorical Features
+            <Popup
+              on="click"
+              position="right center"
+              header="Categorical Features Help"
+              content={
+                <div className="content">
+                 {this.catFeatHelpText}
+                </div>
+              }
+              trigger={
+                <Icon
+                  className="file-upload-categorical-help-icon-standalone"
+                  inverted
+                  size="large"
+                  color="orange"
+                  name="info circle"
+                />
+              }
+            />
+          </p>*/}
+          <select
+            name='plain_dropdown_category'
+            multiple
+            onChange={catFeatCallback}
+          >
+            <option value="" disabled>--Please select categorical features--</option>
+            {catSelectOptions}
+          </select>
+        </div>
+        <CurrentlySelectedKeys
+          fieldType="Categorical"
+          selectionToDisplay={catFeatures}
         />
-
       </div>
+
     );
   }
 }
 
-const mapStateToProps = (state) => ({
-
-});
+const mapStateToProps = (state) => ({});
 
 export { CategoricalFeatInput };
 export default connect(mapStateToProps)(CategoricalFeatInput);
-/*
-<Popup
-  on="click"
-  position="right center"
-  header="Categorical Features Help"
-  content={
-    <div className="content">
-     {this.catFeatHelpText}
-    </div>
-  }
-  trigger={
-    <Icon
-      inverted
-      size="large"
-      color="orange"
-      name="info circle"
-    />
-  }
-/>
-*/
