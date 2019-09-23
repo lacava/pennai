@@ -11,6 +11,8 @@ import OrdinalFeatInput from '../OrdinalFeatInput';
 import OrdinalDropdown from '../OrdinalDropdown';
 import DataTablePreview from '../DataTablePreview';
 import PlainDropdown from '../PlainDropdown';
+import PlainDependentDropdown from '../PlainDependentDropdown';
+
 import { Header, Form, Segment, Popup, Button } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
@@ -641,8 +643,8 @@ class FileUploadForm extends Component {
     let ordinalSelectOpts = this.getSelectDropDown();
     let ordDropdown = this.getDropDown();
     //let availableKeys = this.getFreeKeys();
-    let availableKeys = freeKeys;
-    window.console.log('availableKeys in render', freeKeys);
+    let availableKeys = [...freeKeys];
+    window.console.log('availableKeys in render', availableKeys);
     // default to hidden until a file is selected, then display input areas
     let formInputClass = "file-upload-form-hide-inputs";
 
@@ -720,22 +722,29 @@ class FileUploadForm extends Component {
               <AccordionFormInput
                 accordionStuff={accordionStuff}
               />*/}
-              <PlainDropdown
+              <PlainDependentDropdown
+                fieldType="Dependent Column"
+                dropdownHandler={this.depColbasicHandler}
+                options={freeKeys}
+                selectedValue={dependentCol}
+                multiple={false}
+              />
+              {/*<PlainDropdown
                 fieldType="Dependent Column"
                 dropdownHandler={this.depColbasicHandler}
                 options={freeKeys}
                 multiple={false}
-              />
+              />*/}
               <PlainDropdown
                 fieldType="Categorical Features"
                 dropdownHandler={this.catColBasicHandler}
-                options={freeKeys}
+                options={availableKeys}
                 multiple={true}
               />
               <PlainDropdown
                 fieldType="Ordinal Features"
                 dropdownHandler={this.ordColbasicHandler}
-                options={freeKeys}
+                options={availableKeys}
                 multiple={true}
               />
               <Popup

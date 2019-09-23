@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Segment } from 'semantic-ui-react';
 
-class PlainDropdown extends Component {
+class PlainDependentDropdown extends Component {
 
   constructor(props) {
     super(props);
@@ -11,20 +11,28 @@ class PlainDropdown extends Component {
 
   componentDidUpdate(prevProps) {
     const { options } = this.props;
-    window.console.log('componentDidUpdate - old options', prevProps.options);
-    window.console.log('componentDidUpdate - new options', options);
+    //window.console.log('old options', prevProps.options);
+    //window.console.log('new options', options);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    window.console.log('shouldComponentUpdate - old options', this.props.options);
-    window.console.log('shouldComponentUpdate - new options', nextProps.options);
+    //window.console.log('old options', this.props.options);
+    //window.console.log('new options', nextProps.options);
     return true;
   }
 
   render() {
     const { options, fieldType, dropdownHandler, multiple, selectedValue } = this.props;
-    window.console.log('PlainDropdown', options);
+    //window.console.log('PlainDropdown', options);
     let tempOpts = [];
+    //let testOpts = options.concat(selectedValue);
+    if( selectedValue && selectedValue !== "" ){
+      options.push(selectedValue);
+      options.sort();
+    }
+    // let testOpts = [...options];
+    // testOpts.sort();
+    // window.console.log('PlainDependentDropdown', testOpts);
     options.forEach((key, i) => {
     tempOpts.push(
       <option
@@ -37,7 +45,7 @@ class PlainDropdown extends Component {
     return (
       <div>
         <label>
-          PlainDropdown {fieldType}:
+          PlainDependentDropdown {fieldType}:
         </label>
         <Segment
           inverted
@@ -50,8 +58,9 @@ class PlainDropdown extends Component {
             name={'plain_dropdown_' + fieldType}
             multiple={multiple}
             onChange={dropdownHandler}
+            value={selectedValue ? selectedValue : ""}
           >
-            <option value="" disabled>--Please select {fieldType}--</option>
+            <option value="fieldType_for_dropdown_menu" disabled>--Please select {fieldType}--</option>
             {tempOpts}
           </select>
         </Segment>
@@ -62,5 +71,5 @@ class PlainDropdown extends Component {
 
 const mapStateToProps = (state) => ({});
 
-export { PlainDropdown };
-export default connect(mapStateToProps)(PlainDropdown);
+export { PlainDependentDropdown };
+export default connect(mapStateToProps)(PlainDependentDropdown);
