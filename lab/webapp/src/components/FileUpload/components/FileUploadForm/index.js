@@ -11,8 +11,8 @@ import OrdinalFeatInput from '../OrdinalFeatInput';
 import OrdinalDropdown from '../OrdinalDropdown';
 import DataTablePreview from '../DataTablePreview';
 import PlainDropdown from '../PlainDropdown';
+import PlainCategoryDropdown from '../PlainCategoryDropdown';
 import PlainDependentDropdown from '../PlainDependentDropdown';
-
 import { Header, Form, Segment, Popup, Button } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
@@ -101,11 +101,11 @@ class FileUploadForm extends Component {
     // is currently selected dependent column option (new user input) already in use
     let currSelIndex = currentSelectionCopy.indexOf(userInput);
     currSelIndex > -1 ? currentSelectionCopy.splice(currSelIndex, 1) : currentSelectionCopy.push(userInput);
-    window.console.log('currentSelectionCopy', currentSelectionCopy);
+    //window.console.log('currentSelectionCopy', currentSelectionCopy);
     //let tempFreeKeys = this.getFreeKeys(currentSelectionCopy);
     let tempKeys = this.getDataKeys();
     let tempFreeKeys = tempKeys.filter(key => !currentSelectionCopy.includes(key));
-    window.console.log('tempFreeKeys', tempFreeKeys)
+    //window.console.log('tempFreeKeys', tempFreeKeys)
     this.setState({
       dependentCol: userInput,
       currentSelection: currentSelectionCopy,
@@ -114,11 +114,33 @@ class FileUploadForm extends Component {
   }
 
   catColbasicHandler(e, d) {
-    const { currentSelection } = this.state;
-    let userInput = e.target.value;
+    const { currentSelection, catFeatures } = this.state;
     let currentSelectionCopy = [...currentSelection];
-    window.console.log('catColbasicHandler', userInput);
+    let dropdownOptions = e.target.options;
+    window.console.log('catColbasicHandler', dropdownOptions);
+    let selectedOpts = [];
+    for(var opt in dropdownOptions) {
+      dropdownOptions[opt].selected && dropdownOptions[opt].value !== ""
+        ? selectedOpts.push(dropdownOptions[opt].value) : null;
+    }
+    // check previous values of any selected categorical features in react state
+    // (before handling current user input), if any previous options are in currentSelection
+    // then remove them
+    let oldCats = catFeatures.split(",");
+    let oldIndexes = [];
+    if(oldCats.length && oldCats[0] !== ""){
+      oldCats.forEach(cat => {
+        oldIndexes.push(currentSelectionCopy.indexOf(cat));
+      })
+    }
+    window.console.log('oldIndexes', oldIndexes);
+
+    window.console.log('catColbasicHandler selectedOpts', selectedOpts);
+    // this.setState({
+    //   catFeatures: selectedOpts.join()
+    // });
   }
+
 
   ordColbasicHandler(e, d) {
     const { currentSelection } = this.state;
@@ -734,13 +756,22 @@ class FileUploadForm extends Component {
                 dropdownHandler={this.depColbasicHandler}
                 options={freeKeys}
                 multiple={false}
-              />*/}
+              />
               <PlainDropdown
                 fieldType="Categorical Features"
-                dropdownHandler={this.catColBasicHandler}
+                dropdownHandler={this.catColbasicHandler}
                 options={availableKeys}
                 multiple={true}
               />
+              */}
+
+              {<PlainCategoryDropdown
+                fieldType="Categorical Features"
+                dropdownHandler={this.catColbasicHandler}
+                options={availableKeys}
+                catValues={catFeatures}
+                multiple={true}
+              />}
               <PlainDropdown
                 fieldType="Ordinal Features"
                 dropdownHandler={this.ordColbasicHandler}

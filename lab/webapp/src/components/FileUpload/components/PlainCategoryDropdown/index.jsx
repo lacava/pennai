@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Segment } from 'semantic-ui-react';
 import CurrentlySelectedKeys from '../CurrentlySelectedKeys';
 
-class PlainDependentDropdown extends Component {
+class PlainCategoryDropdown extends Component {
 
   constructor(props) {
     super(props);
@@ -11,12 +11,15 @@ class PlainDependentDropdown extends Component {
   }
 
   render() {
-    const { options, fieldType, dropdownHandler, multiple, selectedValue } = this.props;
-    //window.console.log('PlainDropdown', options);
+    const { options, fieldType, dropdownHandler, multiple, catValues } = this.props;
+    window.console.log('PlainCategoryDropdown', options);
     let tempOpts = [];
-    //let testOpts = options.concat(selectedValue);
-    if( selectedValue && selectedValue !== "" ){
-      options.push(selectedValue);
+    // parse input, split on commas
+    let catList = catValues.split(",");
+    if( catList.length && catList[0] !== "" ){
+      catValues.forEach(cat => {
+        options.push(cat);
+      })
       options.sort();
     }
     // let testOpts = [...options];
@@ -47,15 +50,14 @@ class PlainDependentDropdown extends Component {
             name={'plain_dropdown_' + fieldType}
             multiple={multiple}
             onChange={dropdownHandler}
-            value={selectedValue ? selectedValue : ""}
           >
             <option value="fieldType_for_dropdown_menu" disabled>--Please select {fieldType}--</option>
             {tempOpts}
           </select>
         </Segment>
         <CurrentlySelectedKeys
-          fieldType="Dependent"
-          selectionToDisplay={selectedValue}
+          fieldType="Categorical"
+          selectionToDisplay={catValues}
         />
       </div>
     );
@@ -64,5 +66,5 @@ class PlainDependentDropdown extends Component {
 
 const mapStateToProps = (state) => ({});
 
-export { PlainDependentDropdown };
-export default connect(mapStateToProps)(PlainDependentDropdown);
+export { PlainCategoryDropdown };
+export default connect(mapStateToProps)(PlainCategoryDropdown);

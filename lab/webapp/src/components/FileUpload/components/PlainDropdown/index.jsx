@@ -9,17 +9,17 @@ class PlainDropdown extends Component {
     this.state = {};
   }
 
-  componentDidUpdate(prevProps) {
-    const { options } = this.props;
-    window.console.log('componentDidUpdate - old options', prevProps.options);
-    window.console.log('componentDidUpdate - new options', options);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    window.console.log('shouldComponentUpdate - old options', this.props.options);
-    window.console.log('shouldComponentUpdate - new options', nextProps.options);
-    return true;
-  }
+  // componentDidUpdate(prevProps) {
+  //   const { options } = this.props;
+  //   window.console.log('componentDidUpdate - old options', prevProps.options);
+  //   window.console.log('componentDidUpdate - new options', options);
+  // }
+  //
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   window.console.log('shouldComponentUpdate - old options', this.props.options);
+  //   window.console.log('shouldComponentUpdate - new options', nextProps.options);
+  //   return true;
+  // }
 
   render() {
     const { options, fieldType, dropdownHandler, multiple, selectedValue } = this.props;
