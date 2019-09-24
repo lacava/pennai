@@ -10,6 +10,9 @@ import CategoricalFeatInput from '../CategoricalFeatInput';
 import OrdinalFeatInput from '../OrdinalFeatInput';
 import OrdinalDropdown from '../OrdinalDropdown';
 import DataTablePreview from '../DataTablePreview';
+import PlainDropdown from '../PlainDropdown';
+import PlainCategoryDropdown from '../PlainCategoryDropdown';
+import PlainDependentDropdown from '../PlainDependentDropdown';
 import { Header, Form, Segment, Popup, Button } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
@@ -27,9 +30,11 @@ class FileUploadForm extends Component {
       catFeatures: '',
       ordinalFeatures: {},
       showOrdModal: false,
-      currentSelection: []
+      currentSelection: [],
+      freeKeys: []
     };
 
+    this.getFreeKeys = this.getFreeKeys.bind(this);
     this.getDataKeys = this.getDataKeys.bind(this);
     this.handleSelectedFile = this.handleSelectedFile.bind(this);
     this.depColDropDownClickHandler = this.depColDropDownClickHandler.bind(this);
@@ -38,6 +43,9 @@ class FileUploadForm extends Component {
     this.ordModalClose = this.ordModalClose.bind(this);
     this.updateOrdFeatFromModlCallback = this.updateOrdFeatFromModlCallback.bind(this);
 
+    this.depColbasicHandler = this.depColbasicHandler.bind(this);
+    this.catColbasicHandler = this.catColbasicHandler.bind(this);
+    this.ordColbasicHandler = this.ordColbasicHandler.bind(this);
     this.getSelectDropDown = this.getSelectDropDown.bind(this);
   }
 
@@ -77,6 +85,68 @@ class FileUploadForm extends Component {
         dependentCol: userInput
       });
     }
+  }
+
+  /**
+  * basic click handler for selecting dependent column
+  */
+  depColbasicHandler(e, d) {
+    const { dependentCol, currentSelection } = this.state;
+    let userInput = e.target.value;
+    let currentSelectionCopy = [...currentSelection];
+    // check previous value of dependentCol, if present remove from currentSelection
+    let oldIndex = currentSelectionCopy.indexOf(dependentCol);
+    oldIndex > -1 ? currentSelectionCopy.splice(oldIndex, 1) : null;
+    //window.console.log('depColbasicHandler', userInput);
+    // is currently selected dependent column option (new user input) already in use
+    let currSelIndex = currentSelectionCopy.indexOf(userInput);
+    currSelIndex > -1 ? currentSelectionCopy.splice(currSelIndex, 1) : currentSelectionCopy.push(userInput);
+    //window.console.log('currentSelectionCopy', currentSelectionCopy);
+    //let tempFreeKeys = this.getFreeKeys(currentSelectionCopy);
+    let tempKeys = this.getDataKeys();
+    let tempFreeKeys = tempKeys.filter(key => !currentSelectionCopy.includes(key));
+    //window.console.log('tempFreeKeys', tempFreeKeys)
+    this.setState({
+      dependentCol: userInput,
+      currentSelection: currentSelectionCopy,
+      freeKeys: tempFreeKeys
+    });
+  }
+
+  catColbasicHandler(e, d) {
+    const { currentSelection, catFeatures } = this.state;
+    let currentSelectionCopy = [...currentSelection];
+    let dropdownOptions = e.target.options;
+    window.console.log('catColbasicHandler', dropdownOptions);
+    let selectedOpts = [];
+    for(var opt in dropdownOptions) {
+      dropdownOptions[opt].selected && dropdownOptions[opt].value !== ""
+        ? selectedOpts.push(dropdownOptions[opt].value) : null;
+    }
+    // check previous values of any selected categorical features in react state
+    // (before handling current user input), if any previous options are in currentSelection
+    // then remove them
+    let oldCats = catFeatures.split(",");
+    let oldIndexes = [];
+    if(oldCats.length && oldCats[0] !== ""){
+      oldCats.forEach(cat => {
+        oldIndexes.push(currentSelectionCopy.indexOf(cat));
+      })
+    }
+    window.console.log('oldIndexes', oldIndexes);
+
+    window.console.log('catColbasicHandler selectedOpts', selectedOpts);
+    // this.setState({
+    //   catFeatures: selectedOpts.join()
+    // });
+  }
+
+
+  ordColbasicHandler(e, d) {
+    const { currentSelection } = this.state;
+    let userInput = e.target.value;
+    let currentSelectionCopy = [...currentSelection];
+    window.console.log('ordColbasicHandler', userInput);
   }
 
   /**
@@ -279,7 +349,13 @@ class FileUploadForm extends Component {
        header: true,
        complete: (result) => {
          window.console.log('preview of uploaded data: ', result);
-         this.setState({datasetPreview: result});
+         // initialize freeKeys with every key, all options are valid at first
+         // as user selects options, remove selected option from freeKeys
+         let dataKeys = result.meta.fields;
+         this.setState({
+           datasetPreview: result,
+           freeKeys: dataKeys
+         });
        }
      };
 
@@ -317,7 +393,6 @@ class FileUploadForm extends Component {
          this.setState({
            selectedFile: event.target.files[0],
            errorResp: undefined,
-
            openFileTypePopup: false,
            dependentCol: '',
            catFeatures: '',
@@ -518,6 +593,24 @@ class FileUploadForm extends Component {
      return dataKeys;
    }
 
+   getFreeKeys(currentSelection = []) {
+     const { datasetPreview } = this.state;
+     let dataKeys = [];
+     if(datasetPreview) {
+       //dataKeys = Object.keys(datasetPreview);
+       dataKeys = datasetPreview.meta.fields;
+     }
+     currentSelection.forEach(usedKey => {
+       let tempIndex = dataKeys.indexOf(usedKey);
+       if(tempIndex > -1) {
+         dataKeys.splice(tempIndex, 1);
+       }
+     })
+     window.console.log('free keys', dataKeys);
+     //this.setState({freeKeys: dataKeys})
+     return dataKeys;
+   }
+
    /*
    * test input for JSON, handles string or raw object
    * https://stackoverflow.com/questions/9804777/how-to-test-if-a-string-is-json-or-not
@@ -561,7 +654,8 @@ class FileUploadForm extends Component {
       catFeatures,
       ordinalFeatures,
       showOrdModal,
-      datasetPreview
+      datasetPreview,
+      freeKeys
     } = this.state;
 
     let errorContent;
@@ -570,6 +664,9 @@ class FileUploadForm extends Component {
     let categorySelectOpts = this.getSelectDropDown();
     let ordinalSelectOpts = this.getSelectDropDown();
     let ordDropdown = this.getDropDown();
+    //let availableKeys = this.getFreeKeys();
+    let availableKeys = [...freeKeys];
+    window.console.log('availableKeys in render', availableKeys);
     // default to hidden until a file is selected, then display input areas
     let formInputClass = "file-upload-form-hide-inputs";
 
@@ -639,14 +736,48 @@ class FileUploadForm extends Component {
               id="file-upload-form-input-area"
               className={formInputClass}
             >
-              <DependentColumnInput
+              {/*<DependentColumnInput
                 depColDropdown={depColDropdown}
                 depColCallback={this.depColDropDownClickHandler}
                 dependentCol={dependentCol}
               />
-              {<AccordionFormInput
+              <AccordionFormInput
                 accordionStuff={accordionStuff}
+              />*/}
+              <PlainDependentDropdown
+                fieldType="Dependent Column"
+                dropdownHandler={this.depColbasicHandler}
+                options={freeKeys}
+                selectedValue={dependentCol}
+                multiple={false}
+              />
+              {/*<PlainDropdown
+                fieldType="Dependent Column"
+                dropdownHandler={this.depColbasicHandler}
+                options={freeKeys}
+                multiple={false}
+              />
+              <PlainDropdown
+                fieldType="Categorical Features"
+                dropdownHandler={this.catColbasicHandler}
+                options={availableKeys}
+                multiple={true}
+              />
+              */}
+
+              {<PlainCategoryDropdown
+                fieldType="Categorical Features"
+                dropdownHandler={this.catColbasicHandler}
+                options={availableKeys}
+                catValues={catFeatures}
+                multiple={true}
               />}
+              <PlainDropdown
+                fieldType="Ordinal Features"
+                dropdownHandler={this.ordColbasicHandler}
+                options={availableKeys}
+                multiple={true}
+              />
               <Popup
                 header="Error Submitting Dataset"
                 content={errorContent}
