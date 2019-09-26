@@ -3,25 +3,19 @@ import { connect } from 'react-redux';
 import { Segment } from 'semantic-ui-react';
 import CurrentlySelectedKeys from '../CurrentlySelectedKeys';
 
-class PlainDependentDropdown extends Component {
+class PlainOrdinalDropdown extends Component {
 
   constructor(props) {
     super(props);
     this.state = {};
   }
 
+
   render() {
-    const { options, fieldType, dropdownHandler, multiple, selectedValue } = this.props;
-    window.console.log('PlainDependentDropdown', options);
+    const { options, fieldType, dropdownHandler, multiple, ordValues } = this.props;
+    //window.console.log('PlainOrdinalDropdown', options);
+    //window.console.log('PlainCategoryDropdown ordValues', ordValues);
     let tempOpts = [];
-    //let testOpts = options.concat(selectedValue);
-    if( selectedValue && selectedValue !== "" ){
-      options.push(selectedValue);
-    }
-    // let testOpts = [...options];
-    // testOpts.sort();
-    // window.console.log('PlainDependentDropdown', testOpts);
-    options.sort();
     options.forEach((key, i) => {
     tempOpts.push(
       <option
@@ -34,7 +28,7 @@ class PlainDependentDropdown extends Component {
     return (
       <div>
         <label>
-          PlainDependentDropdown {fieldType}:
+          PlainDropdown {fieldType}:
         </label>
         <Segment
           inverted
@@ -47,15 +41,14 @@ class PlainDependentDropdown extends Component {
             name={'plain_dropdown_' + fieldType}
             multiple={multiple}
             onChange={dropdownHandler}
-            value={selectedValue ? selectedValue : ""}
           >
-            <option value="fieldType_for_dropdown_menu" disabled>--Please select {fieldType}--</option>
+            <option value="" disabled>--Please select {fieldType}--</option>
             {tempOpts}
           </select>
         </Segment>
         <CurrentlySelectedKeys
-          fieldType="Dependent"
-          selectionToDisplay={selectedValue}
+          fieldType="Ordinal"
+          selectionToDisplay={ordValues}
         />
       </div>
     );
@@ -64,5 +57,5 @@ class PlainDependentDropdown extends Component {
 
 const mapStateToProps = (state) => ({});
 
-export { PlainDependentDropdown };
-export default connect(mapStateToProps)(PlainDependentDropdown);
+export { PlainOrdinalDropdown };
+export default connect(mapStateToProps)(PlainOrdinalDropdown);

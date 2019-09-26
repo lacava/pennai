@@ -10,20 +10,33 @@ class PlainCategoryDropdown extends Component {
     this.state = {};
   }
 
+  componentDidUpdate(prevProps) {
+    const { options } = this.props;
+    window.console.log('componentDidUpdate - old options', prevProps);
+    window.console.log('componentDidUpdate - new options', this.props);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    window.console.log('shouldComponentUpdate - old options', this.props);
+    window.console.log('shouldComponentUpdate - new options', nextProps);
+    return true;
+  }
+
   render() {
     const { options, fieldType, dropdownHandler, multiple, catValues } = this.props;
     window.console.log('PlainCategoryDropdown', options);
+    window.console.log('PlainCategoryDropdown catValues', catValues);
     let tempOpts = [];
     // parse input, split on commas
     let catList = catValues.split(",");
     if( catList.length && catList[0] !== "" ){
-      catValues.forEach(cat => {
-        options.push(cat);
-      })
-      options.sort();
+      catList.forEach(cat => {
+        // check current category value in option prop list to prevent adding
+        // same thing twice
+        !options.includes(cat) && options.push(cat);
+      });
     }
-    // let testOpts = [...options];
-    // testOpts.sort();
+    options.sort();
     // window.console.log('PlainDependentDropdown', testOpts);
     options.forEach((key, i) => {
     tempOpts.push(
@@ -37,7 +50,7 @@ class PlainCategoryDropdown extends Component {
     return (
       <div>
         <label>
-          PlainDependentDropdown {fieldType}:
+          PlainCategoryDropdown {fieldType}:
         </label>
         <Segment
           inverted
@@ -50,6 +63,7 @@ class PlainCategoryDropdown extends Component {
             name={'plain_dropdown_' + fieldType}
             multiple={multiple}
             onChange={dropdownHandler}
+            value={catList.length ? catList : ''}
           >
             <option value="fieldType_for_dropdown_menu" disabled>--Please select {fieldType}--</option>
             {tempOpts}

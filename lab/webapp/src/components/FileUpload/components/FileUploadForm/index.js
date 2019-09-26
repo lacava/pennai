@@ -13,6 +13,7 @@ import DataTablePreview from '../DataTablePreview';
 import PlainDropdown from '../PlainDropdown';
 import PlainCategoryDropdown from '../PlainCategoryDropdown';
 import PlainDependentDropdown from '../PlainDependentDropdown';
+import PlainOrdinalDropdown from '../PlainOrdinalDropdown';
 import { Header, Form, Segment, Popup, Button } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
@@ -50,6 +51,12 @@ class FileUploadForm extends Component {
   }
 
   componentDidMount() {
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    //window.console.log('FileUploadForm shouldComponentUpdate - old state', this.state);
+    //window.console.log('FileUploadForm shouldComponentUpdate - new state', nextState);
+    return true;
   }
 
   /**
@@ -91,9 +98,10 @@ class FileUploadForm extends Component {
   * basic click handler for selecting dependent column
   */
   depColbasicHandler(e, d) {
-    const { dependentCol, currentSelection } = this.state;
+    const { dependentCol, currentSelection, freeKeys } = this.state;
     let userInput = e.target.value;
     let currentSelectionCopy = [...currentSelection];
+    window.console.log('depColbasicHandler - old currentSelectionCopy ', currentSelectionCopy);
     // check previous value of dependentCol, if present remove from currentSelection
     let oldIndex = currentSelectionCopy.indexOf(dependentCol);
     oldIndex > -1 ? currentSelectionCopy.splice(oldIndex, 1) : null;
@@ -102,9 +110,12 @@ class FileUploadForm extends Component {
     let currSelIndex = currentSelectionCopy.indexOf(userInput);
     currSelIndex > -1 ? currentSelectionCopy.splice(currSelIndex, 1) : currentSelectionCopy.push(userInput);
     //window.console.log('currentSelectionCopy', currentSelectionCopy);
-    //let tempFreeKeys = this.getFreeKeys(currentSelectionCopy);
+    // generate set of 'free' keys - options not in use (for other dropdowns)
     let tempKeys = this.getDataKeys();
+    //window.console.log('depColbasicHandler - old freeKeys ', freeKeys);
+    window.console.log('depColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
     let tempFreeKeys = tempKeys.filter(key => !currentSelectionCopy.includes(key));
+    //window.console.log('depColbasicHandler - new freeKeys ', tempFreeKeys);
     //window.console.log('tempFreeKeys', tempFreeKeys)
     this.setState({
       dependentCol: userInput,
@@ -114,15 +125,13 @@ class FileUploadForm extends Component {
   }
 
   catColbasicHandler(e, d) {
-    const { currentSelection, catFeatures } = this.state;
+    const { currentSelection, catFeatures, freeKeys } = this.state;
     let currentSelectionCopy = [...currentSelection];
     let dropdownOptions = e.target.options;
-    window.console.log('catColbasicHandler', dropdownOptions);
-    let selectedOpts = [];
-    for(var opt in dropdownOptions) {
-      dropdownOptions[opt].selected && dropdownOptions[opt].value !== ""
-        ? selectedOpts.push(dropdownOptions[opt].value) : null;
-    }
+    //window.console.log('catColbasicHandler', dropdownOptions);
+    window.console.log('catColbasicHandler - old currentSelectionCopy ', currentSelectionCopy);
+    //window.console.log('catColbasicHandler - old freeKeys ', freeKeys);
+
     // check previous values of any selected categorical features in react state
     // (before handling current user input), if any previous options are in currentSelection
     // then remove them
@@ -133,12 +142,30 @@ class FileUploadForm extends Component {
         oldIndexes.push(currentSelectionCopy.indexOf(cat));
       })
     }
-    window.console.log('oldIndexes', oldIndexes);
+    window.console.log('catColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
+    let selectedOpts = [];
+    for(var opt in dropdownOptions) {
+      dropdownOptions[opt].selected
+        && dropdownOptions[opt].value !== ""
+        && !currentSelectionCopy.includes(dropdownOptions[opt].value)
+        ? selectedOpts.push(dropdownOptions[opt].value) : null;
+    }
+
+
+    oldIndexes.forEach(oldI => {
+        oldI > -1
+        ? currentSelectionCopy.splice(oldI, 1) : null;
+    })
+
+    let tempKeys = this.getDataKeys();
+    let tempFreeKeys = tempKeys.filter(key => !selectedOpts.includes(key));
+    //window.console.log('catColbasicHandler - new freeKeys ', tempFreeKeys);
 
     window.console.log('catColbasicHandler selectedOpts', selectedOpts);
-    // this.setState({
-    //   catFeatures: selectedOpts.join()
-    // });
+    this.setState({
+      catFeatures: selectedOpts.join(),
+      freeKeys: tempFreeKeys
+    });
   }
 
 
@@ -665,7 +692,11 @@ class FileUploadForm extends Component {
     let ordinalSelectOpts = this.getSelectDropDown();
     let ordDropdown = this.getDropDown();
     //let availableKeys = this.getFreeKeys();
-    let availableKeys = [...freeKeys];
+    //let availableKeys = [...freeKeys];
+    let availableKeys = freeKeys.slice();
+    let depKeys = freeKeys.slice();
+    let catKeys = freeKeys.slice();
+    window.console.log('freeKeys in render', freeKeys);
     window.console.log('availableKeys in render', availableKeys);
     // default to hidden until a file is selected, then display input areas
     let formInputClass = "file-upload-form-hide-inputs";
@@ -678,28 +709,6 @@ class FileUploadForm extends Component {
       errorContent = ( <p style={{display: 'block'}}> {errorResp} </p> );
       window.setTimeout(this.errorPopupTimeout, 4555);
     }
-
-    // let accordionStuff = [
-    //     (
-    //       <CategoricalFeatInput
-    //         catFeatCallback={this.catDropDownClickHandler}
-    //         catDropdown={catDropdown}
-    //         catDropdownTest={catDropdown}
-    //         catFeatures={catFeatures}
-    //       />
-    //     ),
-    //     (
-    //       <OrdinalDropdown
-    //         ordDropdown={ordDropdown}
-    //         ordinalFeatures={ordinalFeatures}
-    //         showOrdModal={showOrdModal}
-    //         ordDropDownClickHandler={this.ordDropDownClickHandler}
-    //         updateOrdFeatFromModlCallback={this.updateOrdFeatFromModlCallback}
-    //         ordModalCloseCallback={this.ordModalClose}
-    //         ordDropdownTest={ordDropdown}
-    //       />
-    //     )
-    // ];
 
     let accordionStuff = [
         (
@@ -747,7 +756,7 @@ class FileUploadForm extends Component {
               <PlainDependentDropdown
                 fieldType="Dependent Column"
                 dropdownHandler={this.depColbasicHandler}
-                options={freeKeys}
+                options={depKeys}
                 selectedValue={dependentCol}
                 multiple={false}
               />
@@ -765,17 +774,18 @@ class FileUploadForm extends Component {
               />
               */}
 
-              {<PlainCategoryDropdown
+              <PlainCategoryDropdown
                 fieldType="Categorical Features"
                 dropdownHandler={this.catColbasicHandler}
-                options={availableKeys}
+                options={catKeys}
                 catValues={catFeatures}
                 multiple={true}
-              />}
-              <PlainDropdown
+              />
+              <PlainOrdinalDropdown
                 fieldType="Ordinal Features"
                 dropdownHandler={this.ordColbasicHandler}
-                options={availableKeys}
+                ordValues={ordinalFeatures}
+                options={freeKeys}
                 multiple={true}
               />
               <Popup
