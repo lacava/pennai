@@ -95,12 +95,16 @@ class FileUploadForm extends Component {
   }
 
   /**
-  * basic click handler for selecting dependent column
+  * Basic click handler for selecting dependent column - can only accept one value.
+  * As such, first step involves checking for previously selected dep col in order
+  * to 'clear' the old value from currentSelection. Then check new user input against
+  * currentSelection. Then use currentSelection to determine which keys are 'free'
+  * or otherwise available for use in other options/dropdowns
   */
   depColbasicHandler(e, d) {
     const { dependentCol, currentSelection, freeKeys } = this.state;
     let userInput = e.target.value;
-    let currentSelectionCopy = [...currentSelection];
+    let currentSelectionCopy = [...currentSelection]; // keep track of which options are selected
     window.console.log('depColbasicHandler - old currentSelectionCopy ', currentSelectionCopy);
     // check previous value of dependentCol, if present remove from currentSelection
     let oldIndex = currentSelectionCopy.indexOf(dependentCol);
@@ -108,15 +112,16 @@ class FileUploadForm extends Component {
     //window.console.log('depColbasicHandler', userInput);
     // is currently selected dependent column option (new user input) already in use
     let currSelIndex = currentSelectionCopy.indexOf(userInput);
+    // if new input in current selection, remove it, otherwise add it
     currSelIndex > -1 ? currentSelectionCopy.splice(currSelIndex, 1) : currentSelectionCopy.push(userInput);
+    window.console.log('depColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
     //window.console.log('currentSelectionCopy', currentSelectionCopy);
-    // generate set of 'free' keys - options not in use (for other dropdowns)
     let tempKeys = this.getDataKeys();
     //window.console.log('depColbasicHandler - old freeKeys ', freeKeys);
-    window.console.log('depColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
+    // generate set of 'free' keys
     let tempFreeKeys = tempKeys.filter(key => !currentSelectionCopy.includes(key));
     //window.console.log('depColbasicHandler - new freeKeys ', tempFreeKeys);
-    //window.console.log('tempFreeKeys', tempFreeKeys)
+    window.console.log('tempFreeKeys', tempFreeKeys)
     this.setState({
       dependentCol: userInput,
       currentSelection: currentSelectionCopy,
@@ -124,56 +129,133 @@ class FileUploadForm extends Component {
     });
   }
 
+  /**
+  * Basic click handler for selecting categorical features - can accept multiple values.
+  * First step involves checking for previously selected cat features in order
+  * to 'clear' old values from currentSelection. Then check new user input against
+  * currentSelection. Then use currentSelection to determine which keys are 'free'
+  * or otherwise available for use in other options/dropdowns
+  */
   catColbasicHandler(e, d) {
-    const { currentSelection, catFeatures, freeKeys } = this.state;
+    const { currentSelection, catFeatures } = this.state;
     let currentSelectionCopy = [...currentSelection];
     let dropdownOptions = e.target.options;
+    let tempKeys = this.getDataKeys();
     //window.console.log('catColbasicHandler', dropdownOptions);
     window.console.log('catColbasicHandler - old currentSelectionCopy ', currentSelectionCopy);
     //window.console.log('catColbasicHandler - old freeKeys ', freeKeys);
 
     // check previous values of any selected categorical features in react state
     // (before handling current user input), if any previous options are in currentSelection
-    // then remove them
+    // then remove them - attempting to 'reset' currentSelection by clearing it of old values
     let oldCats = catFeatures.split(",");
-    let oldIndexes = [];
     if(oldCats.length && oldCats[0] !== ""){
       oldCats.forEach(cat => {
-        oldIndexes.push(currentSelectionCopy.indexOf(cat));
+        let tempI = currentSelectionCopy.indexOf(cat);
+        tempI > -1
+          ? currentSelectionCopy.splice(tempI, 1) : null;
       })
     }
-    window.console.log('catColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
+
     let selectedOpts = [];
+    // check user input (list of selected options) against current selection, only
+    // process valid options which are free/not in use
     for(var opt in dropdownOptions) {
-      dropdownOptions[opt].selected
-        && dropdownOptions[opt].value !== ""
-        && !currentSelectionCopy.includes(dropdownOptions[opt].value)
-        ? selectedOpts.push(dropdownOptions[opt].value) : null;
+      let optVal = dropdownOptions[opt].value;
+      let optSelected = dropdownOptions[opt].selected;
+      let optIndex = currentSelectionCopy.indexOf(optVal);
+      dropdownOptions[opt].selected && optVal !== "" && !currentSelectionCopy.includes(optVal)
+        ? selectedOpts.push(optVal)
+        : null;
+      // only look at selected options which are valid column keys
+      if(dropdownOptions[opt].selected && tempKeys.includes(optVal)) {
+        optIndex > -1
+          ? currentSelectionCopy.splice(optIndex, 1)
+          : currentSelectionCopy.push(optVal);
+      }
     }
 
+    window.console.log('catColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
+    // currentSelection is now up to date with user input, find new freeKeys
+    let tempFreeKeys = tempKeys.filter(key => !currentSelectionCopy.includes(key));
+    window.console.log('catColbasicHandler - new freeKeys ', tempFreeKeys);
 
-    oldIndexes.forEach(oldI => {
-        oldI > -1
-        ? currentSelectionCopy.splice(oldI, 1) : null;
-    })
-
-    let tempKeys = this.getDataKeys();
-    let tempFreeKeys = tempKeys.filter(key => !selectedOpts.includes(key));
-    //window.console.log('catColbasicHandler - new freeKeys ', tempFreeKeys);
-
-    window.console.log('catColbasicHandler selectedOpts', selectedOpts);
+    //window.console.log('catColbasicHandler selectedOpts', selectedOpts);
     this.setState({
       catFeatures: selectedOpts.join(),
+      currentSelection: currentSelectionCopy,
       freeKeys: tempFreeKeys
     });
   }
 
 
   ordColbasicHandler(e, d) {
-    const { currentSelection } = this.state;
-    let userInput = e.target.value;
+    const { currentSelection, ordinalFeatures, datasetPreview } = this.state;
     let currentSelectionCopy = [...currentSelection];
-    window.console.log('ordColbasicHandler', userInput);
+    let tempKeys = this.getDataKeys();
+    let oldOrdKeys = [];
+    let oldOrdFeats = {...ordinalFeatures};
+    let dropdownOptions = e.target.options;
+    let selectedOpts = [];
+    window.console.log('ordColbasicHandler - old currentSelectionCopy ', currentSelectionCopy);
+    // for(var opt in dropdownOptions) {
+    //   dropdownOptions[opt].selected && dropdownOptions[opt].value !== ""
+    //     ? selectedOpts.push(dropdownOptions[opt].value) : null;
+    // }
+    oldOrdKeys = Object.keys(ordinalFeatures);
+    let oldIndexes = [];
+    if(oldOrdKeys.length && oldOrdKeys[0] !== ""){
+      oldOrdKeys && oldOrdKeys.forEach(ord => {
+        let tempOldI = currentSelectionCopy.indexOf(ord);
+        tempOldI > -1
+          ? currentSelectionCopy.splice(tempOldI, 1) : null;
+      })
+    }
+
+    for(var opt in dropdownOptions) {
+      let optVal = dropdownOptions[opt].value;
+      let optSelected = dropdownOptions[opt].selected; // this is list of options when set as variable? or something weird like that
+      let optIndex = currentSelectionCopy.indexOf(optVal);
+      dropdownOptions[opt].selected && optVal !== "" && !currentSelectionCopy.includes(optVal)
+        ? selectedOpts.push(optVal)
+        : null;
+      // only look at selected options which are valid column keys
+      // if(dropdownOptions[opt].selected && tempKeys.includes(optVal)) {
+      //   optIndex > -1
+      //     ? currentSelectionCopy.splice(optIndex, 1)
+      //     : currentSelectionCopy.push(optVal);
+      // }
+    }
+    let tempOrdFeatsTest = {};
+    let tempVals; // all values in dataset for given ordinal key
+    selectedOpts.forEach(ordOpt => {
+      tempVals = [];
+      let tempI = currentSelectionCopy.indexOf(ordOpt);
+      tempI > -1
+        ? currentSelectionCopy.splice(tempI, 1)
+        : currentSelectionCopy.push(ordOpt);
+      if(oldOrdKeys.includes(ordOpt)) {
+        tempVals = oldOrdFeats[ordOpt];
+      }
+      // let optIndex = datasetPreview.data.indexOf(ordOpt);
+      // tempVals.push(datasetPreview.data[optIndex]);
+      // window.console.log('ordColbasicHandler - tempVals ', tempVals);
+      datasetPreview.data.forEach(row => {
+        tempVals && !tempVals.includes(row[ordOpt]) && row[ordOpt] ? tempVals.push(row[ordOpt]) : null;
+      })
+      window.console.log('ordColbasicHandler - tempVals ', tempVals);
+      tempOrdFeatsTest[ordOpt] = tempVals;
+    })
+    let tempFreeKeys = tempKeys.filter(key => !currentSelectionCopy.includes(key));
+    window.console.log('ordColbasicHandler - tempOrdFeatsTest ', tempOrdFeatsTest);
+    window.console.log('ordColbasicHandler - selectedOpts ', selectedOpts);
+    window.console.log('ordColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
+    this.setState({
+     currentSelection: currentSelectionCopy,
+     ordinalFeatures: tempOrdFeatsTest,
+     showOrdModal: true,
+     freeKeys: tempFreeKeys
+    });
   }
 
   /**
@@ -225,64 +307,6 @@ class FileUploadForm extends Component {
   updateOrdFeatFromModlCallback(newOrdFeats) {
     this.setState({
       ordinalFeatures: newOrdFeats
-    });
-  }
-
-  ordDropDownClickHandler_ORIGINAL(e, d) {
-    const { datasetPreview, ordinalFeatures } = this.state;
-
-    let selectedKey = e.target.innerText;
-    let tempOrdKeys = [];
-    let oldOrdFeats = {};
-
-    let dropdownOptions = e.target.options;
-    let selectedOpts = [];
-    for(var opt in dropdownOptions) {
-      dropdownOptions[opt].selected && dropdownOptions[opt].value !== "" ? selectedOpts.push(dropdownOptions[opt].value) : null;
-    }
-    window.console.log('selectedOpts for ordinal', selectedOpts);
-    // if ordinalFeatures is proper json, can get keys
-    if(typeof ordinalFeatures !== 'string' && this.isJson(ordinalFeatures)) {
-     tempOrdKeys = Object.keys(ordinalFeatures);
-     // keep track of previously selected ordinal keys - will either add or remove
-     // current user selection
-     oldOrdFeats = ordinalFeatures;
-    } else if(ordinalFeatures !== ""){ // else try to parse and get keys
-     window.console.log('trying to parse', ordinalFeatures);
-     let tempObj;
-     try {
-         tempObj = JSON.parse(ordinalFeatures);
-         oldOrdFeats = tempObj;
-         tempOrdKeys = Object.keys(tempObj)
-     } catch (e) {
-         window.console.error(' uh o ----> ', e);
-         //return false;
-     }
-    }
-
-    let tempOrdFeats = {};
-    let ordIndex = tempOrdKeys.indexOf(selectedKey);
-    // keep track of currently selected ordinal feature(s)
-    ordIndex > -1 ? tempOrdKeys.splice(ordIndex, 1) : tempOrdKeys.push(selectedKey);
-    tempOrdKeys.forEach(ordKey => {
-     let tempVals = [];
-     datasetPreview.data.forEach(row => {
-       //tempOrdFeats[ordKey] = row[ordKey];
-       let oldOrdKeys = Object.keys(oldOrdFeats);
-
-       if(oldOrdKeys.includes(ordKey)) {
-         tempVals = oldOrdFeats[ordKey];
-       } else {
-         !tempVals.includes(row[ordKey]) && row[ordKey] ? tempVals.push(row[ordKey]) : null;
-       }
-     })
-     tempOrdFeats[ordKey] = tempVals;
-    });
-    window.console.log('temp ord feats list for dropdown', tempOrdFeats);
-    this.setState({
-     ordKeys: tempOrdKeys,
-     ordinalFeatures: tempOrdFeats,
-     showOrdModal: true
     });
   }
 
@@ -693,9 +717,15 @@ class FileUploadForm extends Component {
     let ordDropdown = this.getDropDown();
     //let availableKeys = this.getFreeKeys();
     //let availableKeys = [...freeKeys];
+    // this is infuriating - I dont understand why this works
+    // availableKeys in this component is correct when selecting other options but
+    // when trying to pass this to other dropdowns they are not being updated correctly
+    // i dont even know how to articulate this problem in terms of react concepts...
+    // but using different copies of the same object works?
     let availableKeys = freeKeys.slice();
     let depKeys = freeKeys.slice();
     let catKeys = freeKeys.slice();
+    let ordKeys = freeKeys.slice();
     window.console.log('freeKeys in render', freeKeys);
     window.console.log('availableKeys in render', availableKeys);
     // default to hidden until a file is selected, then display input areas
@@ -745,14 +775,6 @@ class FileUploadForm extends Component {
               id="file-upload-form-input-area"
               className={formInputClass}
             >
-              {/*<DependentColumnInput
-                depColDropdown={depColDropdown}
-                depColCallback={this.depColDropDownClickHandler}
-                dependentCol={dependentCol}
-              />
-              <AccordionFormInput
-                accordionStuff={accordionStuff}
-              />*/}
               <PlainDependentDropdown
                 fieldType="Dependent Column"
                 dropdownHandler={this.depColbasicHandler}
@@ -760,20 +782,6 @@ class FileUploadForm extends Component {
                 selectedValue={dependentCol}
                 multiple={false}
               />
-              {/*<PlainDropdown
-                fieldType="Dependent Column"
-                dropdownHandler={this.depColbasicHandler}
-                options={freeKeys}
-                multiple={false}
-              />
-              <PlainDropdown
-                fieldType="Categorical Features"
-                dropdownHandler={this.catColbasicHandler}
-                options={availableKeys}
-                multiple={true}
-              />
-              */}
-
               <PlainCategoryDropdown
                 fieldType="Categorical Features"
                 dropdownHandler={this.catColbasicHandler}
@@ -785,7 +793,10 @@ class FileUploadForm extends Component {
                 fieldType="Ordinal Features"
                 dropdownHandler={this.ordColbasicHandler}
                 ordValues={ordinalFeatures}
-                options={freeKeys}
+                options={ordKeys}
+                ordModalCloseCallback={this.ordModalClose}
+                updateOrdFeatFromModlCallback={this.updateOrdFeatFromModlCallback}
+                showOrdModal={showOrdModal}
                 multiple={true}
               />
               <Popup
