@@ -3,6 +3,14 @@ import { connect } from 'react-redux';
 import SortableList from '../SortableList';
 import CurrentlySelectedKeys from '../CurrentlySelectedKeys';
 import { Header, Popup, Icon, Segment, Modal } from 'semantic-ui-react';
+
+// these 'plain' dropdowns create ui form fields using a list of keys/Column
+// names from a given uploaded dataset - parent component handles managing list of
+// available options to select from and any currently selected option(s). Desired
+// behavior is to only present unselected keys/column names. Use a bit of custom logic
+// based on type of input (dependent, ordinal, categorical) to take list of available
+// options and currently selected option(s) to create proper dropdown list for each
+// respective field
 class PlainOrdinalDropdown extends Component {
 
   constructor(props) {
