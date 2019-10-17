@@ -12,16 +12,16 @@ class PlainDependentDropdown extends Component {
 
   render() {
     const { options, fieldType, dropdownHandler, multiple, selectedValue } = this.props;
-    //window.console.log('PlainDropdown', options);
+    window.console.log('PlainDependentDropdown', options);
     let tempOpts = [];
     //let testOpts = options.concat(selectedValue);
     if( selectedValue && selectedValue !== "" ){
       options.push(selectedValue);
-      options.sort();
     }
     // let testOpts = [...options];
     // testOpts.sort();
     // window.console.log('PlainDependentDropdown', testOpts);
+    options.sort();
     options.forEach((key, i) => {
     tempOpts.push(
       <option
