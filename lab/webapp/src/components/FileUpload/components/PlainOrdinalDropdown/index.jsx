@@ -76,13 +76,14 @@ class PlainOrdinalDropdown extends Component {
     }
     options.sort();
     options.forEach((key, i) => {
-    tempOpts.push(
-      <option
-       key={key + '_' + i}
-       value={key}
-      >
-       {key}
-      </option>)
+      tempOpts.push(
+        <option
+         key={key + '_' + i}
+         value={key}
+         selected={ordKeys.includes(key)}
+        >
+         {key}
+        </option>)
     });
     return (
       <div>

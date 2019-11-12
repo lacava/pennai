@@ -17,10 +17,20 @@ import PlainOrdinalDropdown from '../PlainOrdinalDropdown';
 import { Header, Form, Segment, Popup, Button } from 'semantic-ui-react';
 import Papa from 'papaparse';
 
+/**
+*  Parent component for dataset/file upload form
+*   - use list of columns from selected file/dataset to get list of keys, these
+*     keys are used as options in the form fields
+*   - keep track of user selected keys in react state
+*   - each field/input type is managed as separate list of keys
+*   - desired behavior: options of different fields are mutually exclusive
+*     (can only select keys per field/type)
+*/
 class FileUploadForm extends Component {
 
   constructor(props) {
     super(props);
+    //
     this.state = {
       fileFormStuff: 'stuff',
       selectedFile: null,
@@ -56,8 +66,10 @@ class FileUploadForm extends Component {
   */
   depColbasicHandler(e, d) {
     const { dependentCol, currentSelection, freeKeys } = this.state;
+    // react state has previous user input, i.e. 'old' values, 'new' user input
+    // is from html form field event
     let userInput = e.target.value;
-    let currentSelectionCopy = [...currentSelection]; // keep track of which options are selected
+    let currentSelectionCopy = [...currentSelection]; // keep track of which options are selected in entire form
     window.console.log('depColbasicHandler - old currentSelectionCopy ', currentSelectionCopy);
     // check previous value of dependentCol, if present remove from currentSelection
     let oldIndex = currentSelectionCopy.indexOf(dependentCol);
@@ -69,9 +81,9 @@ class FileUploadForm extends Component {
     currSelIndex > -1 ? currentSelectionCopy.splice(currSelIndex, 1) : currentSelectionCopy.push(userInput);
     window.console.log('depColbasicHandler - new currentSelectionCopy ', currentSelectionCopy);
     //window.console.log('currentSelectionCopy', currentSelectionCopy);
-    let tempKeys = this.getDataKeys();
+    let tempKeys = this.getDataKeys(); // from given file/dataset metadata field
     //window.console.log('depColbasicHandler - old freeKeys ', freeKeys);
-    // generate set of 'free' keys
+    // generate set of 'free' keys, i.e. everything not in currentSelection
     let tempFreeKeys = tempKeys.filter(key => !currentSelectionCopy.includes(key));
     //window.console.log('depColbasicHandler - new freeKeys ', tempFreeKeys);
     window.console.log('tempFreeKeys', tempFreeKeys)
@@ -83,11 +95,10 @@ class FileUploadForm extends Component {
   }
 
   /**
-  * Basic click handler for selecting categorical features - can accept multiple values.
-  * First step involves checking for previously selected cat features in order
-  * to 'clear' old values from currentSelection. Then check new user input against
-  * currentSelection. Then use currentSelection to determine which keys are 'free'
-  * or otherwise available for use in other options/dropdowns
+  * Slightly more complicated click handler for selecting categorical features
+  * Can accept multiple values, similar process to managing keys as in click handler
+  * function for dependent column - depColbasicHandler except need to manage one
+  * or more user selected option
   */
   catColbasicHandler(e, d) {
     const { currentSelection, catFeatures } = this.state;
@@ -105,14 +116,14 @@ class FileUploadForm extends Component {
     if(oldCats.length && oldCats[0] !== ""){
       oldCats.forEach(cat => {
         let tempI = currentSelectionCopy.indexOf(cat);
-        tempI > -1
-          ? currentSelectionCopy.splice(tempI, 1) : null;
+        tempI > -1 ? currentSelectionCopy.splice(tempI, 1) : null;
       })
     }
 
     let selectedOpts = [];
     // check user input (list of selected options) against current selection, only
-    // process valid options which are free/not in use
+    // process valid options which are free/not in use. dropdownOptions from html
+    // select field - event target options is list of every available key for this field
     for(var opt in dropdownOptions) {
       let optVal = dropdownOptions[opt].value;
       let optSelected = dropdownOptions[opt].selected;
@@ -141,7 +152,12 @@ class FileUploadForm extends Component {
     });
   }
 
-
+  /**
+  * Fairly complicated click handler for selecting ordinal features but essentially
+  * works in similar manner as other field click handlers - the complication comes
+  * from managing key/value pairs of ordinal features. Each selected ordinal feature has
+  * associated ordered list
+  */
   ordColbasicHandler(e, d) {
     const { currentSelection, ordinalFeatures, datasetPreview } = this.state;
     let currentSelectionCopy = [...currentSelection];
@@ -194,7 +210,8 @@ class FileUploadForm extends Component {
       // tempVals.push(datasetPreview.data[optIndex]);
       // window.console.log('ordColbasicHandler - tempVals ', tempVals);
       datasetPreview.data.forEach(row => {
-        tempVals && !tempVals.includes(row[ordOpt]) && row[ordOpt] ? tempVals.push(row[ordOpt]) : null;
+        tempVals && row[ordOpt] && !tempVals.includes(row[ordOpt])
+          ? tempVals.push(row[ordOpt]) : null;
       })
       window.console.log('ordColbasicHandler - tempVals ', tempVals);
       tempOrdFeatsTest[ordOpt] = tempVals;
