@@ -1,13 +1,19 @@
-FROM ubuntu:xenial
+FROM arm64v8/mongo
 WORKDIR /opt/
 
 ARG docker_filepath=docker/dbmongo/files
 
 #add repo for mongodb
-RUN echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+#RUN echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+#RUN apt-get update --fix-missing && \
+#  apt-get install -y wget gnupg
+#RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | apt-key add -
+ 
+#RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+
 RUN apt-get update --fix-missing && \
   apt-get install -y --allow-unauthenticated \
-  vim mongodb-org npm openssh-client htop dos2unix \
+  vim npm openssh-client htop dos2unix \
   net-tools iputils-ping \
   --no-install-recommends && \
   apt-get clean && \
