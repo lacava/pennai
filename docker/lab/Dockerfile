@@ -107,9 +107,24 @@ RUN apt-get update --fix-missing && apt-get install -y \
     mercurial subversion \
     build-essential cmake lsb-core cpio mesa-common-dev \
     dos2unix \
+    curl \
+    git \
     --no-install-recommends && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Ensure specific python version
+# See: https://stackoverflow.com/a/58562728/1730417
+# and: https://askubuntu.com/a/1176271/260220
+RUN apt-get update && apt-get install -y software-properties-common
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update
+RUN apt-get install -y python3.7 python3.7-dev python3.7-distutils
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
+RUN update-alternatives --set python /usr/bin/python3.7
+RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py --force-reinstall && \
+    rm get-pip.py
 
 # ensure local python is preferred over distribution python
 ENV PATH /usr/local/bin:$PATH
@@ -127,21 +142,30 @@ RUN  apt-get update && apt-get install -y --no-install-recommends \
 		uuid-dev \
 	&& rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  wget python3-venv python3-numpy \
+  wget python3.7-venv python3-numpy \
   && apt-get clean \
   && rm -rf /var/lib/apt/list/*
 
-RUN python3 -m venv /venv
+RUN python3 --version
+RUN python --version
+RUN python -m venv /venv
 ENV PATH=/venv/bin:$PATH
 RUN python --version
 RUN pip --version
 
 # setup python environment
 COPY ${docker_filepath}/requirements.txt /root/
-RUN pip install --no-cache-dir cython
-RUN pip install --no-cache-dir -r /root/requirements.txt
+RUN mkdir /root/wheel
+COPY ${docker_filepath}/wheel /root/wheel
+RUN pip3 install --no-cache-dir cython
+#RUN pip3 install --no-cache-dir -r /root/requirements.txt
+RUN pip3 install --no-index --find-links=/root/wheel -r /root/requirements.txt
 ### bill's surprise fork
-RUN pip install --no-cache-dir git+https://github.com/lacava/surprise.git@1.0.8.3
+# NOTE: For some reason, this install doesn't seem to recognize the installed numpy
+#       when run on Docker. As a workaround, the `wheel` directory includes a wheel
+#       for this install.
+#RUN pip3 install --no-cache-dir git+https://github.com/lacava/surprise.git@1.0.8.3
+RUN pip3 install --no-index --find-links=/root/wheel scikit_surprise
 
 ## Webserver
 
